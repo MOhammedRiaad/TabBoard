@@ -103,9 +103,30 @@
 }
 
 .notes-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.notes-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notes-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.notes-list::-webkit-scrollbar-thumb {
+  background: #c5c5c5;
+  border-radius: 3px;
+}
+
+.notes-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .note-card {
@@ -113,9 +134,19 @@
   border: 1px solid #e5e7eb;
   border-radius: 0.375rem;
   padding: 0.75rem;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+}
+
+.note-display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .note-content {
+  flex: 1;
   margin-bottom: 0.5rem;
 }
 
@@ -124,6 +155,9 @@
   font-size: 0.875rem;
   line-height: 1.5;
   color: #374151;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .note-markdown {
@@ -135,6 +169,11 @@
   font-size: 0.75rem;
   color: #6b7280;
   text-align: right;
+  margin-top: auto;
+}
+
+.note-actions {
+  margin-top: 0.25rem;
 }
 
 .no-notes {
@@ -143,6 +182,7 @@
   color: #9ca3af;
   text-align: center;
   padding: 1rem;
+  grid-column: 1 / -1;
 }
 
 /* Responsive design */
