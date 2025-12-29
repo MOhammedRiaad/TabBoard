@@ -231,7 +231,7 @@ const SessionsView: React.FC = () => {
       const missingTabIds = session.tabIds.filter(tabId => !tabs.some(tab => tab.id === tabId));
       
       // If there are missing tabs, try to get browser tab info to recreate them
-      let missingTabs = [];
+      const missingTabs = [];
       if (missingTabIds.length > 0) {
         // Extract browser tab IDs from the missing tab IDs (format: tab_timestamp_browserTabId)
         const browserTabIds = missingTabIds.map(id => {
