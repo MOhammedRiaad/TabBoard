@@ -114,5 +114,18 @@ npm run dev
 - Cross-browser synchronization
 - Advanced session analytics
 - Integration with productivity tools
-- Keyboard shortcuts
-- Export/import functionality
+- **Keyboard Shortcuts**:
+  - `Ctrl/Cmd + Shift + B`: Switch to Boards view
+  - `Ctrl/Cmd + Shift + H`: Switch to History view
+  - `Ctrl/Cmd + Shift + S`: Switch to Sessions view
+  - `Ctrl/Cmd + Shift + T`: Switch to Today view
+  - `Ctrl/Cmd + Shift + A`: Add a new tab to the current context
+  - `Ctrl/Cmd + Shift + N`: Add a new note
+  - `Ctrl/Cmd + Shift + K`: Add a new task
+  - `Ctrl/Cmd + Shift + F`: Add a new folder
+  - `Ctrl/Cmd + Shift + E`: Export all data
+
+- **Export/Import Functionality**:
+  - Export all your boards, tabs, tasks, notes, sessions, and history with one click
+  - Import data from a JSON file to restore your workspace
+  - Data includes all metadata and relationships

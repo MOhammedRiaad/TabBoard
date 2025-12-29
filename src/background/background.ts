@@ -866,6 +866,91 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       console.log('Session inference completed:', message.payload);
       break;
     
+    case 'EXPORT_ALL_DATA':
+      // Export all data from storage
+      handledAsynchronously = true;
+      let exportAllResponseSent = false;
+      
+      Promise.all([
+        chrome.storage.local.get(['tabboard_boards']).then(result => result['tabboard_boards'] || []),
+        chrome.storage.local.get(['tabboard_folders']).then(result => result['tabboard_folders'] || []),
+        chrome.storage.local.get(['tabboard_tabs']).then(result => result['tabboard_tabs'] || []),
+        chrome.storage.local.get(['tabboard_tasks']).then(result => result['tabboard_tasks'] || []),
+        chrome.storage.local.get(['tabboard_notes']).then(result => result['tabboard_notes'] || []),
+        chrome.storage.local.get(['tabboard_sessions']).then(result => result['tabboard_sessions'] || []),
+        chrome.storage.local.get(['tabboard_history']).then(result => result['tabboard_history'] || [])
+      ]).then(([boards, folders, tabs, tasks, notes, sessions, history]) => {
+        if (!exportAllResponseSent) {
+          exportAllResponseSent = true;
+          _sendResponse({
+            boards,
+            folders,
+            tabs,
+            tasks,
+            notes,
+            sessions,
+            history
+          });
+        }
+      }).catch(error => {
+        if (!exportAllResponseSent) {
+          exportAllResponseSent = true;
+          _sendResponse({ error: error.message });
+        }
+      });
+      
+      setTimeout(() => {
+        if (!exportAllResponseSent) {
+          exportAllResponseSent = true;
+        }
+      }, 2000);
+      
+      return true;
+      
+    case 'IMPORT_ALL_DATA':
+      // Import all data to storage
+      if (message.payload) {
+        handledAsynchronously = true;
+        let importAllResponseSent = false;
+        
+        const { boards, folders, tabs, tasks, notes, sessions, history } = message.payload;
+        
+        // Save all data to storage
+        Promise.all([
+          chrome.storage.local.set({ 'tabboard_boards': boards }),
+          chrome.storage.local.set({ 'tabboard_folders': folders }),
+          chrome.storage.local.set({ 'tabboard_tabs': tabs }),
+          chrome.storage.local.set({ 'tabboard_tasks': tasks }),
+          chrome.storage.local.set({ 'tabboard_notes': notes }),
+          chrome.storage.local.set({ 'tabboard_sessions': sessions }),
+          chrome.storage.local.set({ 'tabboard_history': history })
+        ]).then(() => {
+          // Notify the UI about the import completion
+          chrome.runtime.sendMessage({
+            type: 'STORAGE_DATA_IMPORTED'
+          });
+          
+          if (!importAllResponseSent) {
+            importAllResponseSent = true;
+            _sendResponse({ success: true });
+          }
+        }).catch(error => {
+          if (!importAllResponseSent) {
+            importAllResponseSent = true;
+            _sendResponse({ error: error.message });
+          }
+        });
+        
+        setTimeout(() => {
+          if (!importAllResponseSent) {
+            importAllResponseSent = true;
+          }
+        }, 2000);
+        
+        return true;
+      }
+      break;
+      
     default:
       _sendResponse({ error: 'Unknown message type' });
       break;

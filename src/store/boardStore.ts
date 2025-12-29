@@ -10,10 +10,12 @@ interface BoardState {
   sessions: Session[];
   history: HistoryItem[];
   addBoard: (board: Omit<Board, 'createdAt' | 'updatedAt'>) => void;
+  addBoardSilently: (board: Board) => void;
   updateBoard: (id: string, updates: Partial<Omit<Board, 'id' | 'createdAt'>>) => void;
   deleteBoard: (id: string) => void;
   deleteBoardSilently: (id: string) => void;
   addFolder: (folder: Omit<Folder, 'createdAt'>) => void;
+  addFolderSilently: (folder: Folder) => void;
   updateFolder: (id: string, updates: Partial<Omit<Folder, 'id' | 'createdAt'>>) => void;
   deleteFolder: (id: string) => void;
   deleteFolderSilently: (id: string) => void;
@@ -205,6 +207,28 @@ export const useBoardStore = create<BoardState>((set) => ({
     });
   },
   
+  // Internal function to add board without sending message to background
+  // Used when receiving add message from background to avoid loop
+  addBoardSilently: (board) => {
+    // Update local state
+    set((state) => {
+      // Only add if it doesn't already exist
+      if (state.boards.some(b => b.id === board.id)) {
+        return state;
+      }
+      return {
+        boards: [...state.boards, board]
+      };
+    });
+    
+    // Add to IndexedDB
+    import('../utils/storage').then(({ addBoard: addBoardToIndexedDB }) => {
+      addBoardToIndexedDB(board).catch(error => {
+        console.error('Error adding board to IndexedDB:', error);
+      });
+    });
+  },
+  
   addFolder: (folder) => {
     const newFolder = {
       ...folder,
@@ -281,6 +305,28 @@ export const useBoardStore = create<BoardState>((set) => ({
     import('../utils/storage').then(({ deleteFolder: deleteFolderFromIndexedDB }) => {
       deleteFolderFromIndexedDB(id).catch(error => {
         console.error('Error deleting folder from IndexedDB:', error);
+      });
+    });
+  },
+  
+  // Internal function to add folder without sending message to background
+  // Used when receiving add message from background to avoid loop
+  addFolderSilently: (folder) => {
+    // Update local state
+    set((state) => {
+      // Only add if it doesn't already exist
+      if (state.folders.some(f => f.id === folder.id)) {
+        return state;
+      }
+      return {
+        folders: [...state.folders, folder]
+      };
+    });
+    
+    // Add to IndexedDB
+    import('../utils/storage').then(({ addFolder: addFolderToIndexedDB }) => {
+      addFolderToIndexedDB(folder).catch(error => {
+        console.error('Error adding folder to IndexedDB:', error);
       });
     });
   },

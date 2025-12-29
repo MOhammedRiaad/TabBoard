@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import { useBoardStore } from '../store/boardStore';
 import FolderColumn from './FolderColumn';
@@ -7,6 +7,7 @@ import './BoardView.css';
 
 const BoardView: React.FC = () => {
   const { boards, folders, tabs, moveTab, addBoard } = useBoardStore();
+  const hasCreatedDefaultBoard = useRef(false);
 
   // Create a default board if none exists
   const currentBoard = boards.length > 0 ? boards[0] : {
@@ -18,10 +19,20 @@ const BoardView: React.FC = () => {
   };
   
   useEffect(() => {
-    if (boards.length === 0) {
-      addBoard(currentBoard);
+    // Only create default board once, and only if no boards exist
+    if (boards.length === 0 && !hasCreatedDefaultBoard.current) {
+      hasCreatedDefaultBoard.current = true;
+      addBoard({
+        id: 'default_board',
+        name: 'My Board',
+        color: '#3b82f6'
+      });
     }
-  }, [boards.length, addBoard, currentBoard]);
+    // Reset the flag if boards are manually deleted
+    if (boards.length > 0) {
+      hasCreatedDefaultBoard.current = false;
+    }
+  }, [boards.length, addBoard]);
   
   const boardFolders = folders.filter(folder => folder.boardId === currentBoard.id);
 
