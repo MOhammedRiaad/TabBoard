@@ -621,7 +621,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           chrome.runtime.sendMessage({
             type: 'STORAGE_TASK_DELETED',
             payload: { id: message.payload.id }
-          });
+          }).catch(() => {}); // Suppress errors if message listener is unavailable
           
           if (!deleteTaskResponseSent) {
             deleteTaskResponseSent = true;
@@ -821,7 +821,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           chrome.runtime.sendMessage({
             type: 'STORAGE_NOTE_ADDED',
             payload: message.payload
-          });
+          }).catch(() => {}); // Suppress errors if message listener is unavailable
           
           if (!addNoteResponseSent) {
             addNoteResponseSent = true;
@@ -855,7 +855,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           chrome.runtime.sendMessage({
             type: 'STORAGE_NOTE_DELETED',
             payload: { id: message.payload.id }
-          });
+          }).catch(() => {}); // Suppress errors if message listener is unavailable
           
           if (!deleteNoteResponseSent) {
             deleteNoteResponseSent = true;
@@ -949,6 +949,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       setTimeout(() => {
         if (!exportAllResponseSent) {
           exportAllResponseSent = true;
+          safeSendResponse({ error: 'Export timed out' });
         }
       }, 2000);
       
@@ -975,7 +976,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           // Notify the UI about the import completion
           chrome.runtime.sendMessage({
             type: 'STORAGE_DATA_IMPORTED'
-          });
+          }).catch(() => {}); // Suppress errors if message listener is unavailable
           
           if (!importAllResponseSent) {
             importAllResponseSent = true;
@@ -991,6 +992,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
         setTimeout(() => {
           if (!importAllResponseSent) {
             importAllResponseSent = true;
+            safeSendResponse({ error: 'Import timed out' });
           }
         }, 2000);
         
