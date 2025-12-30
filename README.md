@@ -16,6 +16,7 @@ A Microsoft Edge extension to organize browser tabs, tasks, and work context in 
 - Delete folders with smart tab management (move or delete tabs)
 - Keyboard shortcuts for enhanced productivity
 - Export/Import functionality for data backup and transfer
+- Toggle to show all tasks regardless of due date on Today view
 
 ## Installation
 
@@ -96,6 +97,12 @@ npm run dev
 - **Data Import**: Import data from a JSON file to restore your workspace
 - **Complete Backup**: Data includes all metadata and relationships
 - **One-Click Operations**: Simple export/import buttons in the main navigation
+
+### Today View Enhancements
+- **Show All Tasks**: Toggle to view all tasks regardless of due date
+- **Intuitive Controls**: Easy-to-use button to switch between today's tasks and all tasks
+- **Maintained Layout**: Consistent three-column layout (To Do, Doing, Done) in both views
+- **Dynamic Counts**: Task counts update based on the selected view
 
 ### History & Sessions
 - **Browser History Integration**: Import and organize browser history items
