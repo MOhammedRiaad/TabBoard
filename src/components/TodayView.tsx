@@ -4,6 +4,7 @@ import TaskCard from './TaskCard';
 import NoteCard from './NoteCard';
 import AddTaskForm from './AddTaskForm';
 import AddNoteForm from './AddNoteForm';
+import { useTaskNotifications } from '../hooks/useTaskNotifications';
 import './TodayView.css';
 
 // For now, we'll render plain text instead of markdown
@@ -12,6 +13,9 @@ import './TodayView.css';
 
 const TodayView: React.FC = () => {
   const { tasks, notes } = useBoardStore();
+  
+  // Enable task notifications
+  useTaskNotifications();
   
   // Filter tasks for today
   const today = new Date();

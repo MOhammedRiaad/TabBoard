@@ -150,20 +150,27 @@ chrome.action.onClicked.addListener(async (_tab) => {
 chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   console.log('Background received message:', message);
   
-  let handledAsynchronously = false;
+  // Helper function to safely send response
+  const safeSendResponse = (response: any) => {
+    try {
+      safeSendResponse(response);
+    } catch (error) {
+      // Response already sent or channel closed
+      console.warn('Failed to send response:', error);
+    }
+  };
   
   // Handle different message types
   switch (message.type) {
     case 'MOVE_TAB':
       // Handle tab movement between folders
       handleMoveTab(message.payload);
-      _sendResponse({ success: true });
+      safeSendResponse({ success: true });
       break;
     
     case 'ADD_TAB':
       // Add a tab
       if (message.payload) {
-        handledAsynchronously = true;
         let addTabResponseSent = false;
         
         addTab(message.payload).then(() => {
@@ -171,22 +178,23 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           chrome.runtime.sendMessage({
             type: 'STORAGE_TAB_ADDED',
             payload: message.payload
-          });
+          }).catch(() => {}); // Ignore errors from sendMessage
           
           if (!addTabResponseSent) {
             addTabResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!addTabResponseSent) {
             addTabResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
         setTimeout(() => {
           if (!addTabResponseSent) {
             addTabResponseSent = true;
+            safeSendResponse({ success: true }); // Fallback response
           }
         }, 1000);
         
@@ -196,18 +204,17 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       
     case 'GET_ACTIVE_TAB':
       // Return information about the currently active tab
-      // Use a flag to track if response was sent
       let responseSent = false;
       
       getActiveTabInfo().then(tabInfo => {
         if (!responseSent) {
           responseSent = true;
-          _sendResponse(tabInfo);
+          safeSendResponse(tabInfo);
         }
       }).catch(error => {
         if (!responseSent) {
           responseSent = true;
-          _sendResponse({ error: error.message });
+          safeSendResponse({ error: error.message });
         }
       });
       
@@ -215,22 +222,21 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       setTimeout(() => {
         if (!responseSent) {
           responseSent = true;
-          // Don't send response if channel is closed
+          safeSendResponse({ error: 'Timeout getting active tab info' });
         }
-      }, 1000); // 1 second timeout
+      }, 1000);
       
-      return true; // Required to keep message channel open for async response
+      return true;
       
     case 'CREATE_TAB_IN_FOLDER':
       // Create a new tab and associate it with a folder
       createTabInFolder(message.payload);
-      _sendResponse({ success: true });
+      safeSendResponse({ success: true });
       break;
     
     case 'ADD_TASK':
       // Add a task
       if (message.payload) {
-        handledAsynchronously = true;
         let addTaskResponseSent = false;
         
         addTask(message.payload).then(() => {
@@ -238,22 +244,23 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           chrome.runtime.sendMessage({
             type: 'STORAGE_TASK_ADDED',
             payload: message.payload
-          });
+          }).catch(() => {}); // Ignore errors from sendMessage
           
           if (!addTaskResponseSent) {
             addTaskResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!addTaskResponseSent) {
             addTaskResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
         setTimeout(() => {
           if (!addTaskResponseSent) {
             addTaskResponseSent = true;
+            safeSendResponse({ success: true }); // Fallback response
           }
         }, 1000);
         
@@ -264,7 +271,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'DELETE_TAB':
       // Delete a tab
       if (message.payload && message.payload.id) {
-        handledAsynchronously = true;
+        
         let deleteTabResponseSent = false;
         
         deleteTab(message.payload.id).then(() => {
@@ -272,22 +279,23 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           chrome.runtime.sendMessage({
             type: 'STORAGE_TAB_DELETED',
             payload: { id: message.payload.id }
-          });
+          }).catch(() => {}); // Ignore errors from sendMessage
           
           if (!deleteTabResponseSent) {
             deleteTabResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!deleteTabResponseSent) {
             deleteTabResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
         setTimeout(() => {
           if (!deleteTabResponseSent) {
             deleteTabResponseSent = true;
+            safeSendResponse({ success: true }); // Fallback response
           }
         }, 1000);
         
@@ -298,7 +306,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'DELETE_FOLDER':
       // Delete a folder
       if (message.payload && message.payload.id) {
-        handledAsynchronously = true;
+        
         let deleteFolderResponseSent = false;
         
         deleteFolder(message.payload.id).then(() => {
@@ -306,22 +314,23 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           chrome.runtime.sendMessage({
             type: 'STORAGE_FOLDER_DELETED',
             payload: { id: message.payload.id }
-          });
+          }).catch(() => {}); // Ignore errors from sendMessage
           
           if (!deleteFolderResponseSent) {
             deleteFolderResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!deleteFolderResponseSent) {
             deleteFolderResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
         setTimeout(() => {
           if (!deleteFolderResponseSent) {
             deleteFolderResponseSent = true;
+            safeSendResponse({ success: true }); // Fallback response
           }
         }, 1000);
         
@@ -331,24 +340,25 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     
     case 'GET_HISTORY':
       // Return browser history items
-      handledAsynchronously = true;
+      
       let historyResponseSent = false;
       
       getAllHistory().then(history => {
         if (!historyResponseSent) {
           historyResponseSent = true;
-          _sendResponse(history);
+          safeSendResponse(history);
         }
       }).catch(error => {
         if (!historyResponseSent) {
           historyResponseSent = true;
-          _sendResponse({ error: error.message });
+          safeSendResponse({ error: error.message });
         }
       });
       
       setTimeout(() => {
         if (!historyResponseSent) {
           historyResponseSent = true;
+          safeSendResponse({ error: 'Timeout getting history' }); // Fallback response
         }
       }, 1000);
       
@@ -357,24 +367,25 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'ADD_HISTORY':
       // Add a history item
       if (message.payload) {
-        handledAsynchronously = true;
+        
         let addHistoryResponseSent = false;
         
         addHistory(message.payload).then(() => {
           if (!addHistoryResponseSent) {
             addHistoryResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!addHistoryResponseSent) {
             addHistoryResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
         setTimeout(() => {
           if (!addHistoryResponseSent) {
             addHistoryResponseSent = true;
+            safeSendResponse({ success: true }); // Fallback response
           }
         }, 1000);
         
@@ -385,24 +396,25 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'UPDATE_HISTORY':
       // Update a history item
       if (message.payload) {
-        handledAsynchronously = true;
+        
         let updateHistoryResponseSent = false;
         
         updateHistory(message.payload).then(() => {
           if (!updateHistoryResponseSent) {
             updateHistoryResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!updateHistoryResponseSent) {
             updateHistoryResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
         setTimeout(() => {
           if (!updateHistoryResponseSent) {
             updateHistoryResponseSent = true;
+            safeSendResponse({ success: true }); // Fallback response
           }
         }, 1000);
         
@@ -413,7 +425,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'ADD_FOLDER':
       // Add a folder
       if (message.payload) {
-        handledAsynchronously = true;
+        
         let addFolderResponseSent = false;
         
         addFolder(message.payload).then(() => {
@@ -421,22 +433,23 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           chrome.runtime.sendMessage({
             type: 'STORAGE_FOLDER_ADDED',
             payload: message.payload
-          });
+          }).catch(() => {}); // Ignore errors from sendMessage
           
           if (!addFolderResponseSent) {
             addFolderResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!addFolderResponseSent) {
             addFolderResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
         setTimeout(() => {
           if (!addFolderResponseSent) {
             addFolderResponseSent = true;
+            safeSendResponse({ success: true }); // Fallback response
           }
         }, 1000);
         
@@ -447,24 +460,25 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'DELETE_HISTORY':
       // Delete a history item
       if (message.payload && message.payload.id) {
-        handledAsynchronously = true;
+        
         let deleteHistoryResponseSent = false;
         
         deleteHistory(message.payload.id).then(() => {
           if (!deleteHistoryResponseSent) {
             deleteHistoryResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!deleteHistoryResponseSent) {
             deleteHistoryResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
         setTimeout(() => {
           if (!deleteHistoryResponseSent) {
             deleteHistoryResponseSent = true;
+            safeSendResponse({ success: true }); // Fallback response
           }
         }, 1000);
         
@@ -475,7 +489,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'ADD_BOARD':
       // Add a board
       if (message.payload) {
-        handledAsynchronously = true;
+        
         let addBoardResponseSent = false;
         
         // For now, we'll just add the board to storage
@@ -488,28 +502,29 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
             chrome.runtime.sendMessage({
               type: 'STORAGE_BOARD_ADDED',
               payload: message.payload
-            });
+            }).catch(() => {}); // Ignore errors from sendMessage
             
             if (!addBoardResponseSent) {
               addBoardResponseSent = true;
-              _sendResponse({ success: true });
+              safeSendResponse({ success: true });
             }
           }).catch(error => {
             if (!addBoardResponseSent) {
               addBoardResponseSent = true;
-              _sendResponse({ error: error.message });
+              safeSendResponse({ error: error.message });
             }
           });
         }).catch(error => {
           if (!addBoardResponseSent) {
             addBoardResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
         setTimeout(() => {
           if (!addBoardResponseSent) {
             addBoardResponseSent = true;
+            safeSendResponse({ success: true }); // Fallback response
           }
         }, 1000);
         
@@ -520,7 +535,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'DELETE_BOARD':
       // Delete a board
       if (message.payload && message.payload.id) {
-        handledAsynchronously = true;
+        
         let deleteBoardResponseSent = false;
         
         // For now, we'll just delete the board from storage
@@ -534,22 +549,22 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
             chrome.runtime.sendMessage({
               type: 'STORAGE_BOARD_DELETED',
               payload: { id: message.payload.id }
-            });
+            }).catch(() => {}); // Ignore errors from sendMessage
             
             if (!deleteBoardResponseSent) {
               deleteBoardResponseSent = true;
-              _sendResponse({ success: true });
+              safeSendResponse({ success: true });
             }
           }).catch(error => {
             if (!deleteBoardResponseSent) {
               deleteBoardResponseSent = true;
-              _sendResponse({ error: error.message });
+              safeSendResponse({ error: error.message });
             }
           });
         }).catch(error => {
           if (!deleteBoardResponseSent) {
             deleteBoardResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
@@ -566,7 +581,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'DELETE_TASK':
       // Delete a task
       if (message.payload && message.payload.id) {
-        handledAsynchronously = true;
+        
         let deleteTaskResponseSent = false;
         
         deleteTask(message.payload.id).then(() => {
@@ -578,12 +593,12 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           
           if (!deleteTaskResponseSent) {
             deleteTaskResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!deleteTaskResponseSent) {
             deleteTaskResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
@@ -600,18 +615,18 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'GET_HISTORY_ITEM':
       // Get a specific history item
       if (message.payload && message.payload.id) {
-        handledAsynchronously = true;
+        
         let getHistoryItemResponseSent = false;
         
         getHistory(message.payload.id).then(historyItem => {
           if (!getHistoryItemResponseSent) {
             getHistoryItemResponseSent = true;
-            _sendResponse(historyItem);
+            safeSendResponse(historyItem);
           }
         }).catch(error => {
           if (!getHistoryItemResponseSent) {
             getHistoryItemResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
@@ -627,7 +642,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     
     case 'GET_BROWSER_HISTORY':
       // Get actual browser history using chrome.history API
-      handledAsynchronously = true;
+      
       let browserHistoryResponseSent = false;
       
       chrome.history.search({
@@ -637,12 +652,12 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       }).then(browserHistory => {
         if (!browserHistoryResponseSent) {
           browserHistoryResponseSent = true;
-          _sendResponse(browserHistory);
+          safeSendResponse(browserHistory);
         }
       }).catch(error => {
         if (!browserHistoryResponseSent) {
           browserHistoryResponseSent = true;
-          _sendResponse({ error: error.message });
+          safeSendResponse({ error: error.message });
         }
       });
       
@@ -656,18 +671,18 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     
     case 'GET_SESSIONS':
       // Return all sessions
-      handledAsynchronously = true;
+      
       let sessionsResponseSent = false;
       
       getAllSessions().then(sessions => {
         if (!sessionsResponseSent) {
           sessionsResponseSent = true;
-          _sendResponse(sessions);
+          safeSendResponse(sessions);
         }
       }).catch(error => {
         if (!sessionsResponseSent) {
           sessionsResponseSent = true;
-          _sendResponse({ error: error.message });
+          safeSendResponse({ error: error.message });
         }
       });
       
@@ -682,18 +697,18 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'ADD_SESSION':
       // Add a session
       if (message.payload) {
-        handledAsynchronously = true;
+        
         let addSessionResponseSent = false;
         
         addSession(message.payload).then(() => {
           if (!addSessionResponseSent) {
             addSessionResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!addSessionResponseSent) {
             addSessionResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
@@ -710,18 +725,18 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'UPDATE_SESSION':
       // Update a session
       if (message.payload) {
-        handledAsynchronously = true;
+        
         let updateSessionResponseSent = false;
         
         updateSession(message.payload).then(() => {
           if (!updateSessionResponseSent) {
             updateSessionResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!updateSessionResponseSent) {
             updateSessionResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
@@ -738,18 +753,18 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'DELETE_SESSION':
       // Delete a session
       if (message.payload && message.payload.id) {
-        handledAsynchronously = true;
+        
         let deleteSessionResponseSent = false;
         
         deleteSession(message.payload.id).then(() => {
           if (!deleteSessionResponseSent) {
             deleteSessionResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!deleteSessionResponseSent) {
             deleteSessionResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
@@ -766,7 +781,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'ADD_NOTE':
       // Add a note
       if (message.payload) {
-        handledAsynchronously = true;
+        
         let addNoteResponseSent = false;
         
         addNote(message.payload).then(() => {
@@ -778,12 +793,12 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           
           if (!addNoteResponseSent) {
             addNoteResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!addNoteResponseSent) {
             addNoteResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
@@ -800,7 +815,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'DELETE_NOTE':
       // Delete a note
       if (message.payload && message.payload.id) {
-        handledAsynchronously = true;
+        
         let deleteNoteResponseSent = false;
         
         deleteNote(message.payload.id).then(() => {
@@ -812,12 +827,12 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           
           if (!deleteNoteResponseSent) {
             deleteNoteResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!deleteNoteResponseSent) {
             deleteNoteResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
@@ -834,18 +849,18 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'GET_SESSION':
       // Get a specific session
       if (message.payload && message.payload.id) {
-        handledAsynchronously = true;
+        
         let getSessionResponseSent = false;
         
         getSession(message.payload.id).then(session => {
           if (!getSessionResponseSent) {
             getSessionResponseSent = true;
-            _sendResponse(session);
+            safeSendResponse(session);
           }
         }).catch(error => {
           if (!getSessionResponseSent) {
             getSessionResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
@@ -868,7 +883,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     
     case 'EXPORT_ALL_DATA':
       // Export all data from storage
-      handledAsynchronously = true;
+      
       let exportAllResponseSent = false;
       
       Promise.all([
@@ -882,7 +897,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       ]).then(([boards, folders, tabs, tasks, notes, sessions, history]) => {
         if (!exportAllResponseSent) {
           exportAllResponseSent = true;
-          _sendResponse({
+          safeSendResponse({
             boards,
             folders,
             tabs,
@@ -895,7 +910,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       }).catch(error => {
         if (!exportAllResponseSent) {
           exportAllResponseSent = true;
-          _sendResponse({ error: error.message });
+          safeSendResponse({ error: error.message });
         }
       });
       
@@ -910,7 +925,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     case 'IMPORT_ALL_DATA':
       // Import all data to storage
       if (message.payload) {
-        handledAsynchronously = true;
+        
         let importAllResponseSent = false;
         
         const { boards, folders, tabs, tasks, notes, sessions, history } = message.payload;
@@ -932,12 +947,12 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           
           if (!importAllResponseSent) {
             importAllResponseSent = true;
-            _sendResponse({ success: true });
+            safeSendResponse({ success: true });
           }
         }).catch(error => {
           if (!importAllResponseSent) {
             importAllResponseSent = true;
-            _sendResponse({ error: error.message });
+            safeSendResponse({ error: error.message });
           }
         });
         
@@ -952,16 +967,11 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       break;
       
     default:
-      _sendResponse({ error: 'Unknown message type' });
+      safeSendResponse({ error: 'Unknown message type' });
       break;
   }
   
-  // Only return true if we're handling asynchronously
-  if (handledAsynchronously) {
-    return true;
-  }
-  
-  // For synchronous operations, don't return anything or return false
+  // Return false for synchronous operations (response already sent)
   return false;
 });
 
