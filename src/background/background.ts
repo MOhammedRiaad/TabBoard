@@ -153,7 +153,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   // Helper function to safely send response
   const safeSendResponse = (response: any) => {
     try {
-      safeSendResponse(response);
+      _sendResponse(response);
     } catch (error) {
       // Response already sent or channel closed
       console.warn('Failed to send response:', error);
@@ -492,17 +492,30 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
         
         let addBoardResponseSent = false;
         
-        // For now, we'll just add the board to storage
+        // Check if board already exists before adding
         chrome.storage.local.get(['tabboard_boards']).then((result: any) => {
           const boards: any[] = result['tabboard_boards'] || [];
-          boards.push(message.payload);
+          const boardId = message.payload.id;
+          
+          // Check if board already exists
+          const existingIndex = boards.findIndex((board: any) => board.id === boardId);
+          
+          if (existingIndex !== -1) {
+            // Update existing board instead of adding duplicate
+            boards[existingIndex] = message.payload;
+          } else {
+            // Add new board
+            boards.push(message.payload);
+          }
           
           chrome.storage.local.set({ 'tabboard_boards': boards }).then(() => {
-            // Notify the side panel about the addition
-            chrome.runtime.sendMessage({
-              type: 'STORAGE_BOARD_ADDED',
-              payload: message.payload
-            }).catch(() => {}); // Ignore errors from sendMessage
+            // Only notify if it's a new board, not an update
+            if (existingIndex === -1) {
+              chrome.runtime.sendMessage({
+                type: 'STORAGE_BOARD_ADDED',
+                payload: message.payload
+              }).catch(() => {}); // Ignore errors from sendMessage
+            }
             
             if (!addBoardResponseSent) {
               addBoardResponseSent = true;
