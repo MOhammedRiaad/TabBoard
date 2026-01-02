@@ -48,6 +48,7 @@ export interface Task {
   title: string;
   description?: string;
   checklist?: TaskChecklistItem[];
+  completedSessions?: number; // Track pomodoro sessions
   status: 'todo' | 'doing' | 'done';
   dueDate?: string;
   priority: 'low' | 'medium' | 'high';
@@ -107,6 +108,8 @@ export interface AnalyticsData {
   mostVisitedDomains: DomainStat[];
   taskCompletionRate: number;
   activityByDay: DayActivity[];
+  topFocusedTasks: { id: string; title: string; sessions: number; timeString: string; }[];
+  maxTaskSessions: number;
 }
 
 export interface DomainStat {
