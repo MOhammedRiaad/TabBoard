@@ -209,14 +209,6 @@ npm run dev
 - **Drag & Drop**: Move items between folders by dragging the handle (⋮⋮)
 - **Folder Rename**: Click folder names to edit them
 
-## Future Enhancements
-
-- AI-powered tab organization suggestions
-- Cross-browser synchronization
-- Integration with productivity tools
-- Tags and labels for items
-- Pinned/favorites functionality
-- Rich markdown editor for notes
 
 ## Phase 5: Focus & Persistence
 
@@ -236,3 +228,10 @@ npm run dev
 - **Rich Details**: Add descriptions to tasks
 - **Checklists**: Break down tasks into sub-items with progress tracking
 - **Linked Tabs**: Open tabs associated with tasks directly from the task card
+
+## Future Enhancements
+- AI-powered tab organization suggestions
+- Cross-browser synchronization
+- Integration with productivity tools
+- Tags and labels for items
+- Pinned/favorites functionality
