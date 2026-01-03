@@ -25,7 +25,17 @@ function App() {
   useStorageSync(); // Initialize storage sync
   useTheme(); // Initialize theme
 
-  const [activeView, setActiveView] = useState<ViewType>('today');
+  // Persist active view in localStorage
+  const [activeView, setActiveView] = useState<ViewType>(() => {
+    const saved = localStorage.getItem('tabboard-active-view');
+    return (saved as ViewType) || 'today';
+  });
+
+  // Save view to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('tabboard-active-view', activeView);
+  }, [activeView]);
+
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
