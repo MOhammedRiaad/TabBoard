@@ -1,4 +1,4 @@
-import { CanvasElement, CanvasState } from '../types/canvas';
+import { CanvasElement, CanvasState } from '../features/canvas/types/canvas';
 
 /**
  * Export canvas to PNG image
@@ -13,7 +13,12 @@ export function exportToPNG(canvas: HTMLCanvasElement, filename: string = 'canva
 /**
  * Export canvas to SVG
  */
-export function exportToSVG(elements: CanvasElement[], width: number, height: number, filename: string = 'canvas.svg'): void {
+export function exportToSVG(
+    elements: CanvasElement[],
+    width: number,
+    height: number,
+    filename: string = 'canvas.svg'
+): void {
     let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
 
     elements.forEach(element => {
@@ -40,9 +45,9 @@ export function exportToSVG(elements: CanvasElement[], width: number, height: nu
                 break;
             case 'path':
                 if ('points' in element && element.points.length > 0) {
-                    const pathData = element.points.map((p, i) =>
-                        i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`
-                    ).join(' ');
+                    const pathData = element.points
+                        .map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`))
+                        .join(' ');
                     svgContent += `<path d="${pathData}" ${commonAttrs} fill="none" />`;
                 }
                 break;
