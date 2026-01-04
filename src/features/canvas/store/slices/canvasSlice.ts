@@ -10,6 +10,8 @@ export const DEFAULT_SETTINGS: CanvasSettings = {
     defaultStrokeColor: '#93c5fd',
     defaultFillColor: 'transparent',
     defaultStrokeWidth: 2,
+    defaultTextColor: '#1f2937',
+    defaultFontSize: 24,
 };
 
 // We define the slice type in ../types.ts to avoid circular deps,
@@ -128,7 +130,8 @@ export const createCanvasSlice: StateCreator<CanvasStoreState, [], [], CanvasSli
             }
 
             if (settings && typeof settings === 'object') {
-                set({ settings });
+                // Merge with defaults to ensure new properties are available
+                set({ settings: { ...DEFAULT_SETTINGS, ...settings } });
             }
         } catch (error) {
             console.error('Failed to load canvas data:', error);

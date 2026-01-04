@@ -561,15 +561,16 @@ const CanvasView: React.FC = () => {
     const drawText = (ctx: CanvasRenderingContext2D, element: CanvasElement) => {
         if (!('text' in element)) return;
 
-        ctx.font = `${element.style.fontWeight || 'normal'} ${element.style.fontSize || 16}px ${
-            element.style.fontFamily || 'sans-serif'
-        } `;
+        const fontSize = element.fontSize || 16;
+        const fontFamily = element.fontFamily || 'Arial';
+
+        ctx.font = `${fontSize}px ${fontFamily}`;
         ctx.fillStyle = element.style.strokeColor;
         ctx.textAlign = ('textAlign' in element ? element.textAlign : 'left') as CanvasTextAlign;
         ctx.textBaseline = 'top';
 
         const lines = element.text.split('\n');
-        const lineHeight = (element.style.fontSize || 16) * 1.2;
+        const lineHeight = fontSize * 1.2;
 
         lines.forEach((line, index) => {
             ctx.fillText(line, element.x, element.y + index * lineHeight);
@@ -989,6 +990,50 @@ const CanvasView: React.FC = () => {
                                                 {Math.round(selectedElement.style.opacity * 100)}%
                                             </span>
                                         </div>
+
+                                        {selectedElement.type === 'text' && (
+                                            <>
+                                                <div className="property-row">
+                                                    <span className="property-label">Text Color</span>
+                                                    <input
+                                                        type="color"
+                                                        value={selectedElement.style.strokeColor}
+                                                        onChange={e =>
+                                                            updateElement(selectedElement.id, {
+                                                                style: {
+                                                                    ...selectedElement.style,
+                                                                    strokeColor: e.target.value,
+                                                                },
+                                                            })
+                                                        }
+                                                        style={{ width: '60px', height: '30px', cursor: 'pointer' }}
+                                                    />
+                                                </div>
+
+                                                <div className="property-row">
+                                                    <span className="property-label">Font Size</span>
+                                                    <input
+                                                        type="range"
+                                                        min="8"
+                                                        max="72"
+                                                        value={selectedElement.fontSize || 16}
+                                                        onChange={e => {
+                                                            const newFontSize = parseInt(e.target.value);
+                                                            const textLength = selectedElement.text.length;
+                                                            updateElement(selectedElement.id, {
+                                                                fontSize: newFontSize,
+                                                                width: textLength * (newFontSize * 0.6),
+                                                                height: newFontSize * 1.5,
+                                                            });
+                                                        }}
+                                                        style={{ flex: 1 }}
+                                                    />
+                                                    <span style={{ minWidth: '40px', textAlign: 'right' }}>
+                                                        {selectedElement.fontSize || 16}px
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 );
                             })()}

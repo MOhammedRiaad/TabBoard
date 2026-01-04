@@ -87,6 +87,8 @@ export interface CanvasSettings {
     defaultStrokeColor: string;
     defaultFillColor: string;
     defaultStrokeWidth: number;
+    defaultTextColor: string;
+    defaultFontSize: number;
 }
 
 export interface HistoryState {

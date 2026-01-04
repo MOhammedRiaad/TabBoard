@@ -13,16 +13,16 @@ export class TextTool extends BaseTool {
                 type: 'text',
                 x: point.x,
                 y: point.y,
-                width: text.length * 12, // Approximate width
-                height: 24,
+                width: text.length * (context.store.settings.defaultFontSize * 0.6), // Approximate width based on font size
+                height: context.store.settings.defaultFontSize * 1.5, // Height based on font size
                 rotation: 0,
                 text: text.trim(),
-                fontSize: 16,
+                fontSize: context.store.settings.defaultFontSize,
                 fontFamily: 'Arial',
                 textAlign: 'left',
                 style: {
-                    strokeColor: context.store.settings.defaultStrokeColor,
-                    fillColor: context.store.settings.defaultFillColor, // Typically transparent or same as text color
+                    strokeColor: context.store.settings.defaultTextColor,
+                    fillColor: 'transparent',
                     strokeWidth: 1,
                     strokeStyle: 'solid',
                     opacity: 1,
