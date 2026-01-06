@@ -6,7 +6,7 @@ import HistoryView from './features/history/HistoryView';
 import SessionsView from './features/sessions/SessionsView';
 import TodayView from './features/today/TodayView';
 import AnalyticsDashboard from './features/analytics/AnalyticsDashboard';
-import CanvasView from './features/canvas/components/CanvasView';
+import CanvasContainer from './features/canvas/components/CanvasContainer';
 import CommandPalette from './features/ui/components/CommandPalette';
 import AppHeader from './features/navigation/components/AppHeader';
 import AppNav from './features/navigation/components/AppNav';
@@ -129,7 +129,7 @@ function App() {
             case 'analytics':
                 return <AnalyticsDashboard />;
             case 'canvas':
-                return <CanvasView />;
+                return <CanvasContainer />;
             case 'today':
             default:
                 return <TodayView />;

@@ -99,6 +99,24 @@ export class PenTool extends BaseTool {
             createdAt: Date.now(),
             updatedAt: Date.now(),
         };
+
+        // Simplify points (simple distance-based or every Nth point)
+        // Basic optimization: Filter points that are too close
+        if (element.points.length > 2) {
+            const simplified = [element.points[0]];
+            for (let i = 1; i < element.points.length - 1; i++) {
+                const prev = simplified[simplified.length - 1];
+                const curr = element.points[i];
+                const dist = Math.sqrt(Math.pow(curr.x - prev.x, 2) + Math.pow(curr.y - prev.y, 2));
+                if (dist > 2) {
+                    // Minimum distance threshold
+                    simplified.push(curr);
+                }
+            }
+            simplified.push(element.points[element.points.length - 1]);
+            element.points = simplified;
+        }
+
         context.store.addElement(element);
 
         this.points = [];

@@ -4,6 +4,7 @@ import { CanvasStoreState, ViewSlice } from '../types';
 export const createViewSlice: StateCreator<CanvasStoreState, [], [], ViewSlice> = set => ({
     previewElement: null,
     selectionBox: null,
+    cursorMode: null,
 
     setZoom: zoom => {
         set(state => ({
@@ -37,5 +38,9 @@ export const createViewSlice: StateCreator<CanvasStoreState, [], [], ViewSlice> 
 
     setSelectionBox: box => {
         set({ selectionBox: box });
+    },
+
+    setCursorMode: mode => {
+        set({ cursorMode: mode });
     },
 });

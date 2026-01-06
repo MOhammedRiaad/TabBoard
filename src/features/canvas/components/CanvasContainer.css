@@ -5,6 +5,8 @@
     width: 100%;
     overflow: hidden;
     background-color: var(--color-bg-primary);
+    position: relative;
+    /* Critical: Creates stacking context for absolute children */
 }
 
 /* Canvas Toolbar */
@@ -35,10 +37,24 @@
 /* Tool Buttons */
 .tool-group {
     display: flex;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs);
+    gap: 4px;
+    padding: 4px;
     background-color: var(--color-bg-tertiary);
-    border-radius: var(--radius-md);
+    border-radius: 6px;
+    position: relative;
+}
+
+/* Visual separator between tool groups */
+.tool-group:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 24px;
+    background-color: var(--color-border);
+    opacity: 0.5;
 }
 
 .tool-btn {
@@ -52,18 +68,21 @@
     border-radius: var(--radius-sm);
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.15s ease;
     font-size: 18px;
+    position: relative;
 }
 
 .tool-btn:hover {
     background-color: var(--color-bg-hover);
     color: var(--color-text-primary);
+    transform: scale(1.05);
 }
 
 .tool-btn.active {
     background-color: var(--color-primary);
     color: var(--color-text-inverse);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 .tool-btn:disabled {
@@ -95,14 +114,26 @@
 }
 
 /* Canvas Container */
+/* Canvas Container */
 .canvas-container {
     flex: 1;
     position: relative;
     overflow: hidden;
-    background-color: #ffffff;
-    /* Always white background for canvas visibility */
+    background-color: #f8fafc;
+    /* Slight off-white/gray for modern feel */
     width: 100%;
     height: 100%;
+    transition: background-color 0.3s ease;
+}
+
+/* Subtle inner shadow for depth */
+.canvas-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.02);
+    pointer-events: none;
+    z-index: 5;
 }
 
 .canvas-wrapper {
@@ -110,6 +141,15 @@
     height: 100%;
     position: relative;
     cursor: crosshair;
+}
+
+/* Tool-specific cursors */
+.canvas-wrapper.tool-select {
+    cursor: default;
+}
+
+.canvas-wrapper.tool-select:hover {
+    cursor: pointer;
 }
 
 .main-canvas {
@@ -120,6 +160,48 @@
     height: 100%;
     image-rendering: auto;
     /* Smooth rendering instead of pixelated */
+    /* Note: Actual grid is drawn by canvas, but we can set cursor here */
+}
+
+/* Resize cursor classes for canvas */
+.canvas-wrapper.resizing-nw {
+    cursor: nw-resize !important;
+}
+
+.canvas-wrapper.resizing-n {
+    cursor: n-resize !important;
+}
+
+.canvas-wrapper.resizing-ne {
+    cursor: ne-resize !important;
+}
+
+.canvas-wrapper.resizing-e {
+    cursor: e-resize !important;
+}
+
+.canvas-wrapper.resizing-se {
+    cursor: se-resize !important;
+}
+
+.canvas-wrapper.resizing-s {
+    cursor: s-resize !important;
+}
+
+.canvas-wrapper.resizing-sw {
+    cursor: sw-resize !important;
+}
+
+.canvas-wrapper.resizing-w {
+    cursor: w-resize !important;
+}
+
+.canvas-wrapper.rotating {
+    cursor: grab !important;
+}
+
+.canvas-wrapper.dragging {
+    cursor: move !important;
 }
 
 /* Properties Panel */
@@ -441,4 +523,55 @@
         height: 32px;
         font-size: 16px;
     }
+}
+
+/* Resize Handles */
+.resize-handle {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border: 2px solid #3b82f6;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    pointer-events: all;
+    cursor: inherit;
+}
+
+.resize-handle:hover {
+    background: #3b82f6;
+    transform: translate(-50%, -50%) scale(1.3);
+}
+
+.resize-handle.nw-resize {
+    cursor: nw-resize;
+}
+
+.resize-handle.n-resize {
+    cursor: n-resize;
+}
+
+.resize-handle.ne-resize {
+    cursor: ne-resize;
+}
+
+.resize-handle.e-resize {
+    cursor: e-resize;
+}
+
+.resize-handle.se-resize {
+    cursor: se-resize;
+}
+
+.resize-handle.s-resize {
+    cursor: s-resize;
+}
+
+.resize-handle.sw-resize {
+    cursor: sw-resize;
+}
+
+.resize-handle.w-resize {
+    cursor: w-resize;
 }

@@ -29,6 +29,11 @@ export interface ElementSlice {
     sendToBack: (ids: string[]) => void;
     bringForward: (ids: string[]) => void;
     sendBackward: (ids: string[]) => void;
+    groupElements: (ids: string[]) => void;
+    ungroupElements: (groupId: string) => void;
+    alignElements: (type: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => void;
+    distributeElements: (type: 'horizontal' | 'vertical') => void;
+    reorderElement: (id: string, newIndex: number) => void;
 }
 
 export interface SelectionSlice {
@@ -55,6 +60,8 @@ export interface ViewSlice {
     setPreviewElement: (element: CanvasElement | null) => void;
     selectionBox: { start: Point; end: Point } | null;
     setSelectionBox: (box: { start: Point; end: Point } | null) => void;
+    cursorMode: string | null;
+    setCursorMode: (mode: string | null) => void;
 }
 
 export type CanvasStoreState = CanvasSlice & ElementSlice & SelectionSlice & HistorySlice & ViewSlice;

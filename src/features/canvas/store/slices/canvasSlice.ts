@@ -27,6 +27,7 @@ export const createCanvasSlice: StateCreator<CanvasStoreState, [], [], CanvasSli
             boardId,
             elements: [],
             selectedIds: [],
+            groups: [],
             activeTool: 'select',
             gridEnabled: get().settings.gridEnabled,
             snapToGrid: get().settings.snapToGrid,
@@ -126,7 +127,12 @@ export const createCanvasSlice: StateCreator<CanvasStoreState, [], [], CanvasSli
             const settings = await storageService.get<CanvasSettings>('canvasSettings');
 
             if (canvases && Array.isArray(canvases)) {
-                set({ canvases });
+                // Migrate old canvases to include groups array if missing
+                const migratedCanvases = canvases.map(canvas => ({
+                    ...canvas,
+                    groups: canvas.groups || [],
+                }));
+                set({ canvases: migratedCanvases });
             }
 
             if (settings && typeof settings === 'object') {

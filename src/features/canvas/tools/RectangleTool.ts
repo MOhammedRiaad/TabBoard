@@ -30,7 +30,7 @@ export class RectangleTool extends BaseTool {
 
         // We need a way to set the preview element in the View.
         // For now, let's assume we can add a temp element to the store or handle it via a callback?
-        // Actually, the Store doesn't have a 'previewElement' state. CanvasView had it in local state.
+        // Actually, the Store doesn't have a 'previewElement' state. CanvasContainer had it in local state.
         // We might need to add 'previewElement' to the CanvasStore or UIStore to share it.
         // OR, we can just add it as a real element but mark it as 'preview' (maybe with a flag or ID).
         // Let's rely on adding it to the store for now, but we might want a 'preview' slice.
