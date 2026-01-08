@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ViewType = 'boards' | 'history' | 'sessions' | 'today' | 'analytics' | 'canvas';
+export type ViewType = 'boards' | 'history' | 'sessions' | 'today' | 'analytics' | 'canvas' | 'settings';
 
 interface UIState {
     activeView: ViewType;
