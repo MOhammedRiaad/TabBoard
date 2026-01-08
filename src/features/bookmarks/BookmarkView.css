@@ -1,0 +1,310 @@
+.bookmark-view {
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.bookmark-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color, #e0e0e0);
+}
+
+.bookmark-header h2 {
+    margin: 0 0 1rem 0;
+    font-size: 1.75rem;
+    color: var(--text-primary, #333);
+}
+
+.bookmark-header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bookmark-search {
+    flex: 1;
+    min-width: 200px;
+}
+
+.bookmark-search-input {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.bookmark-search-input:focus {
+    outline: none;
+    border-color: var(--primary-color, #4a90e2);
+}
+
+.bookmark-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.bookmark-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+    background: var(--bg-secondary, #f5f5f5);
+    color: var(--text-primary, #333);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.bookmark-btn:hover {
+    background: var(--bg-hover, #e8e8e8);
+    border-color: var(--primary-color, #4a90e2);
+}
+
+.bookmark-btn-primary {
+    background: var(--primary-color, #4a90e2);
+    color: white;
+    border-color: var(--primary-color, #4a90e2);
+}
+
+.bookmark-btn-primary:hover {
+    background: var(--primary-hover, #357abd);
+}
+
+.bookmark-form {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary, #f9f9f9);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.bookmark-input {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+.bookmark-input:focus {
+    outline: none;
+    border-color: var(--primary-color, #4a90e2);
+}
+
+.bookmark-form-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.bookmark-error {
+    padding: 1rem;
+    background: #fee;
+    color: #c33;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.bookmark-loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary, #666);
+}
+
+.bookmark-empty {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-secondary, #666);
+    font-style: italic;
+}
+
+.bookmark-tree {
+    margin-top: 1rem;
+}
+
+.bookmark-tree-item {
+    margin-bottom: 0.25rem;
+}
+
+.bookmark-node {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.bookmark-node:hover {
+    background: var(--bg-hover, #f0f0f0);
+}
+
+.bookmark-node-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 0.75rem;
+}
+
+.bookmark-node-main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.bookmark-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.bookmark-node-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.bookmark-title {
+    font-weight: 500;
+    color: var(--text-primary, #333);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bookmark-url {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #666);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bookmark-children-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #666);
+    margin-left: 0.5rem;
+}
+
+.bookmark-node-actions {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.bookmark-menu-btn {
+    padding: 0.25rem 0.5rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1.25rem;
+    color: var(--text-secondary, #666);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.bookmark-menu-btn:hover {
+    background: var(--bg-hover, #e8e8e8);
+}
+
+.bookmark-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.25rem;
+    background: white;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    min-width: 150px;
+    overflow: hidden;
+}
+
+.bookmark-menu-item {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-primary, #333);
+    transition: background 0.2s;
+}
+
+.bookmark-menu-item:hover {
+    background: var(--bg-hover, #f0f0f0);
+}
+
+.bookmark-menu-item-danger {
+    color: #c33;
+}
+
+.bookmark-menu-item-danger:hover {
+    background: #fee;
+}
+
+.bookmark-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem;
+    background: var(--bg-secondary, #f9f9f9);
+    border-radius: 6px;
+}
+
+.bookmark-edit-input {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.bookmark-edit-input:focus {
+    outline: none;
+    border-color: var(--primary-color, #4a90e2);
+}
+
+.bookmark-edit-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.bookmark-btn-small {
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 4px;
+    background: var(--bg-secondary, #f5f5f5);
+    color: var(--text-primary, #333);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.bookmark-btn-small:hover {
+    background: var(--bg-hover, #e8e8e8);
+}
+
+.bookmark-folder {
+    font-weight: 500;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .bookmark-view {
+        --text-primary: #e0e0e0;
+        --text-secondary: #a0a0a0;
+        --bg-secondary: #2a2a2a;
+        --bg-hover: #3a3a3a;
+        --border-color: #444;
+        --primary-color: #5a9fe2;
+        --primary-hover: #4a8fd2;
+    }
+}

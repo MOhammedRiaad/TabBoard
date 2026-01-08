@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useBoardStore } from '../store/boardStore';
 
 export const useKeyboardShortcuts = (
-    activeView: 'boards' | 'history' | 'sessions' | 'today',
-    setActiveView: (view: 'boards' | 'history' | 'sessions' | 'today') => void
+    activeView: 'boards' | 'history' | 'sessions' | 'today' | 'bookmarks',
+    setActiveView: (view: 'boards' | 'history' | 'sessions' | 'today' | 'bookmarks') => void
 ) => {
     // Only get the action functions from the store, not the data arrays
     const addTab = useBoardStore(state => state.addTab);
@@ -43,6 +43,11 @@ export const useKeyboardShortcuts = (
             else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 't') {
                 e.preventDefault();
                 setActiveView('today');
+            }
+            // Ctrl/Cmd + Shift + M: Switch to Bookmarks view
+            else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'm') {
+                e.preventDefault();
+                setActiveView('bookmarks');
             }
             // Ctrl/Cmd + Shift + A: Add a new tab to the current context
             else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'a') {

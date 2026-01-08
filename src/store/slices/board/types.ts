@@ -1,5 +1,6 @@
 import { StateCreator } from 'zustand';
 import { Board, Folder, Tab, Task, Note, Session, HistoryItem } from '../../../types';
+import { BookmarkSlice } from './bookmarkSlice';
 
 export interface BoardSlice {
     boards: Board[];
@@ -63,6 +64,6 @@ export interface HistorySlice {
     fetchBrowserHistory: () => Promise<chrome.history.HistoryItem[]>;
 }
 
-export type BoardState = BoardSlice & TabSlice & TaskSlice & NoteSlice & SessionSlice & HistorySlice;
+export type BoardState = BoardSlice & TabSlice & TaskSlice & NoteSlice & SessionSlice & HistorySlice & BookmarkSlice;
 
 export type BoardStoreCreator<T> = StateCreator<BoardState, [], [], T>;

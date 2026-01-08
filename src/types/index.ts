@@ -97,6 +97,26 @@ export interface HistoryItem {
     createdAt: string;
 }
 
+// Bookmark types
+export interface Bookmark {
+    id: string; // Chrome bookmark ID
+    title: string;
+    url?: string; // undefined for folders
+    parentId?: string; // Parent folder ID
+    index?: number; // Position in parent
+    dateAdded?: number; // Chrome timestamp
+    dateGroupModified?: number; // Chrome timestamp
+    children?: Bookmark[]; // For folders
+    favicon?: string;
+    // Custom fields for TabBoard integration
+    folderId?: string; // TabBoard folder ID if synced
+    syncedAt?: string; // When synced with TabBoard
+}
+
+export interface BookmarkTreeNode extends chrome.bookmarks.BookmarkTreeNode {
+    children?: BookmarkTreeNode[];
+}
+
 // Analytics types
 export interface AnalyticsData {
     totalTabs: number;
@@ -129,7 +149,7 @@ export interface DayActivity {
 // Search types
 export interface SearchResult {
     id: string;
-    type: 'tab' | 'task' | 'note' | 'folder' | 'session';
+    type: 'tab' | 'task' | 'note' | 'folder' | 'session' | 'bookmark';
     title: string;
     subtitle?: string;
     url?: string;

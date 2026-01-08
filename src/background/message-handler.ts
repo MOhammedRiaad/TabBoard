@@ -5,6 +5,7 @@ import { handleNoteMessage } from './note-service';
 import { handleHistoryMessage } from './history-service';
 import { handleSessionMessage } from './session-service';
 import { handleDataMessage } from './data-service';
+import { handleBookmarkMessage } from './bookmark-service';
 import { addTab, deleteTab } from './storage';
 import { ExtensionMessage, Tab, Board } from '../types';
 
@@ -25,8 +26,12 @@ chrome.runtime.onMessage.addListener(
     (message: ExtensionMessage, _sender, _sendResponse: (response?: unknown) => void) => {
         console.log('Background received message:', message);
 
+        // Ignore internal STORAGE_* notification messages (these are sent from background to popup)
+        if (message.type.startsWith('STORAGE_')) {
+            return false;
+        }
+
         // Handle different message types
-        console.log('Processed message:', message); // Added to ensure usage of message
 
         switch (message.type) {
             case 'MOVE_TAB':
@@ -328,8 +333,22 @@ chrome.runtime.onMessage.addListener(
             case 'IMPORT_ALL_DATA':
                 return handleDataMessage(message, _sendResponse);
 
+            // Handle bookmark messages
+            case 'GET_BOOKMARKS':
+            case 'GET_BOOKMARK':
+            case 'CREATE_BOOKMARK':
+            case 'CREATE_BOOKMARK_FOLDER':
+            case 'UPDATE_BOOKMARK':
+            case 'MOVE_BOOKMARK':
+            case 'DELETE_BOOKMARK':
+            case 'DELETE_BOOKMARK_TREE':
+            case 'SEARCH_BOOKMARKS':
+            case 'GET_BOOKMARK_CHILDREN':
+                return handleBookmarkMessage(message, _sendResponse);
+
             default:
-                safeSendResponse(_sendResponse, { error: 'Unknown message type' });
+                console.warn('Unknown message type:', message.type, message);
+                safeSendResponse(_sendResponse, { error: `Unknown message type: ${message.type}` });
                 break;
         }
 
