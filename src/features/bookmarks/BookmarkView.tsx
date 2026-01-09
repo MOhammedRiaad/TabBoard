@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useBoardStore } from '../../store/boardStore';
 import { Bookmark } from '../../types';
 import { sortBookmarks, loadSortConfig, saveSortConfig, SortConfig } from './utils/sortUtils';
+import { filterBookmarks, loadFilterConfig, saveFilterConfig, FilterConfig } from './utils/filterUtils';
 import './BookmarkView.css';
 import BookmarkHeader from './components/BookmarkHeader';
 import BookmarkTree from './components/BookmarkTree';
@@ -28,6 +29,7 @@ const BookmarkView: React.FC = () => {
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
     const [sortConfig, setSortConfig] = useState<SortConfig>(() => loadSortConfig());
+    const [filterConfig, setFilterConfig] = useState<FilterConfig>(() => loadFilterConfig());
 
     useEffect(() => {
         // Load bookmarks when the component mounts
@@ -176,13 +178,24 @@ const BookmarkView: React.FC = () => {
         saveSortConfig(config);
     }, []);
 
-    // Apply sorting to bookmarks
+    // Handle filter configuration changes
+    const handleFilterChange = useCallback((config: FilterConfig) => {
+        setFilterConfig(config);
+        saveFilterConfig(config);
+    }, []);
+
+    // Apply filters to bookmarks
+    const filteredBookmarkTree = useMemo(() => {
+        return filterBookmarks(bookmarkTree, filterConfig);
+    }, [bookmarkTree, filterConfig]);
+
+    // Apply sorting to filtered bookmarks
     const sortedBookmarkTree = useMemo(() => {
         if (sortConfig.criteria === 'default') {
-            return bookmarkTree;
+            return filteredBookmarkTree;
         }
-        return sortBookmarks(bookmarkTree, sortConfig);
-    }, [bookmarkTree, sortConfig]);
+        return sortBookmarks(filteredBookmarkTree, sortConfig);
+    }, [filteredBookmarkTree, sortConfig]);
 
     const expandAllFolders = useCallback(() => {
         const getAllFolderIds = (bookmarks: Bookmark[]): string[] => {
@@ -206,15 +219,24 @@ const BookmarkView: React.FC = () => {
         setExpandedFolders(new Set());
     }, []);
 
-    const sortedSearchResults = useMemo(() => {
+    // Apply filters to search results
+    const filteredSearchResults = useMemo(() => {
         if (!searchQuery.trim() || searchResults.length === 0) {
             return [];
         }
-        if (sortConfig.criteria === 'default') {
-            return searchResults;
+        return filterBookmarks(searchResults, filterConfig);
+    }, [searchResults, filterConfig, searchQuery]);
+
+    // Apply sorting to filtered search results
+    const sortedSearchResults = useMemo(() => {
+        if (!searchQuery.trim() || filteredSearchResults.length === 0) {
+            return [];
         }
-        return sortBookmarks(searchResults, sortConfig);
-    }, [searchResults, sortConfig, searchQuery]);
+        if (sortConfig.criteria === 'default') {
+            return filteredSearchResults;
+        }
+        return sortBookmarks(filteredSearchResults, sortConfig);
+    }, [filteredSearchResults, sortConfig]);
 
     // For search results, we need to handle them differently since they're flat
     // For bookmark tree, we pass the tree structure
@@ -253,6 +275,8 @@ const BookmarkView: React.FC = () => {
                 onShowToast={showToast}
                 sortConfig={sortConfig}
                 onSortChange={handleSortChange}
+                filterConfig={filterConfig}
+                onFilterChange={handleFilterChange}
             />
 
             {error && <div className="bookmark-error">Error: {error}</div>}

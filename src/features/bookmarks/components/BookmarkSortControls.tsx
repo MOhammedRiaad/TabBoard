@@ -19,7 +19,8 @@ const BookmarkSortControls: React.FC<BookmarkSortControlsProps> = ({ sortConfig,
             ...sortConfig,
             criteria,
             // Reset to default order when changing criteria
-            order: criteria === 'name' ? 'asc' : 'desc',
+            // Name and domain: ascending (A-Z), Dates: descending (newest first)
+            order: criteria === 'name' || criteria === 'domain' ? 'asc' : 'desc',
         });
     };
 
@@ -38,6 +39,12 @@ const BookmarkSortControls: React.FC<BookmarkSortControlsProps> = ({ sortConfig,
         }
         if (sortConfig.criteria === 'dateAdded') {
             return sortConfig.order === 'desc' ? 'Date Added (Newest)' : 'Date Added (Oldest)';
+        }
+        if (sortConfig.criteria === 'dateModified') {
+            return sortConfig.order === 'desc' ? 'Date Modified (Newest)' : 'Date Modified (Oldest)';
+        }
+        if (sortConfig.criteria === 'domain') {
+            return sortConfig.order === 'asc' ? 'Domain (A-Z)' : 'Domain (Z-A)';
         }
         return 'Default';
     };
@@ -58,6 +65,8 @@ const BookmarkSortControls: React.FC<BookmarkSortControlsProps> = ({ sortConfig,
                     <option value="default">Default</option>
                     <option value="name">Name</option>
                     <option value="dateAdded">Date Added</option>
+                    <option value="dateModified">Date Modified</option>
+                    <option value="domain">Domain</option>
                 </select>
             </div>
 
