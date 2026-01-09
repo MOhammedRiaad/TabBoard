@@ -393,6 +393,38 @@
 }
 
 /* ============================================
+   BOARD GRID (Grid View)
+   ============================================ */
+
+.board-list.grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .board-list.grid-view {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.25rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .board-list.grid-view {
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+.board-list.grid-view .board-list-item {
+    margin-bottom: 0;
+}
+
+.board-list.grid-view .board-list-section {
+    display: contents;
+}
+
+/* ============================================
    DRAG OVERLAY
    ============================================ */
 
@@ -505,6 +537,7 @@
         opacity: 1;
         background-position: 0% 0%;
     }
+
     50% {
         opacity: 0.6;
         background-position: 100% 0%;
@@ -539,6 +572,7 @@
         opacity: 0;
         transform: translateX(100%);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -725,7 +759,7 @@
 }
 
 [data-theme='dark'] .board-folder:hover {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(31, 41, 55, 0.8) 100%);
+    opacity: 0.95;
 }
 
 [data-theme='dark'] .board-icon {
@@ -905,9 +939,9 @@
 }
 
 .board-folder:hover {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, var(--color-bg-primary, #ffffff) 100%);
-    border-left-color: var(--color-primary-hover, #2563eb);
     border-left-width: 4px;
+    opacity: 0.95;
+    transform: translateY(-1px);
 }
 
 .board-node-content {
@@ -1169,6 +1203,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -1191,6 +1226,7 @@
         opacity: 0;
         transform: translateY(20px) scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -1484,4 +1520,265 @@
     outline: 3px solid var(--color-primary, #3b82f6);
     outline-offset: 2px;
     z-index: 1;
+}
+
+/* ============================================
+   FOLDER DELETE MODAL STYLES
+   ============================================ */
+
+.folder-delete-warning {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%);
+    border: 1.5px solid rgba(251, 191, 36, 0.3);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.warning-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.warning-content {
+    flex: 1;
+}
+
+.warning-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-primary, #1f2937);
+    margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, #6b7280);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Horizontal layout for delete options */
+.delete-options-horizontal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .delete-options-horizontal {
+        grid-template-columns: 1fr;
+    }
+}
+
+.delete-option-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border: 2px solid var(--color-border, #e5e7eb);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--color-bg-primary, #ffffff);
+    min-height: 200px;
+}
+
+.delete-option-card:hover {
+    border-color: var(--color-primary, #3b82f6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.delete-option-card.selected {
+    border-color: var(--color-primary, #3b82f6);
+    border-width: 2px;
+    background: rgba(59, 130, 246, 0.02);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.delete-option-card-danger {
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.delete-option-card-danger:hover {
+    border-color: var(--color-danger, #ef4444);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.delete-option-card-danger.selected {
+    border-color: var(--color-danger, #ef4444);
+    background: rgba(239, 68, 68, 0.02);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.delete-option-radio {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--color-primary, #3b82f6);
+}
+
+.delete-option-card-danger .delete-option-radio {
+    accent-color: var(--color-danger, #ef4444);
+}
+
+.delete-option-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    padding-top: 1rem;
+}
+
+.delete-option-icon-large {
+    font-size: 3rem;
+    line-height: 1;
+}
+
+.delete-option-title {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--color-text-primary, #1f2937);
+    text-align: center;
+}
+
+.delete-option-warning {
+    font-size: 0.8125rem;
+    color: var(--color-danger, #ef4444);
+    margin: 0;
+    padding: 0.75rem;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 8px;
+    text-align: center;
+    line-height: 1.4;
+    width: 100%;
+}
+
+.folder-select-wrapper {
+    width: 100%;
+}
+
+.folder-select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1.5px solid var(--color-border, #e5e7eb);
+    border-radius: 10px;
+    background: var(--color-bg-primary, #ffffff);
+    color: var(--color-text-primary, #1f2937);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.folder-select:focus {
+    outline: none;
+    border-color: var(--color-primary, #3b82f6);
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.1),
+        0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.folder-select:hover {
+    border-color: var(--color-primary, #3b82f6);
+}
+
+.no-folders-message {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted, #9ca3af);
+    margin: 0;
+    text-align: center;
+    font-style: italic;
+}
+
+.folder-select-wrapper {
+    margin-top: 0.5rem;
+}
+
+.folder-select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1.5px solid var(--color-border, #e5e7eb);
+    border-radius: 10px;
+    background: var(--color-bg-primary, #ffffff);
+    color: var(--color-text-primary, #1f2937);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.folder-select:focus {
+    outline: none;
+    border-color: var(--color-primary, #3b82f6);
+    box-shadow:
+        0 0 0 4px rgba(59, 130, 246, 0.1),
+        0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.folder-select:hover {
+    border-color: var(--color-primary, #3b82f6);
+}
+
+.board-action-btn-danger {
+    background: linear-gradient(135deg, var(--color-danger, #ef4444) 0%, #dc2626 100%);
+    border-color: var(--color-danger, #ef4444);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.board-action-btn-danger:hover:not(:disabled) {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border-color: #dc2626;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+    transform: translateY(-2px);
+}
+
+.board-action-btn-danger:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+/* Dark mode for folder delete modal */
+[data-theme='dark'] .folder-delete-warning {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.08) 100%);
+    border-color: rgba(251, 191, 36, 0.4);
+}
+
+[data-theme='dark'] .warning-title {
+    color: var(--color-text-primary, #f9fafb);
+}
+
+[data-theme='dark'] .delete-option {
+    background: var(--color-bg-secondary, #111827);
+    border-color: var(--color-border, #374151);
+}
+
+[data-theme='dark'] .delete-option:hover {
+    background: var(--color-bg-tertiary, #1f2937);
+}
+
+[data-theme='dark'] .folder-select {
+    background: var(--color-bg-secondary, #111827);
+    border-color: var(--color-border, #374151);
+    color: var(--color-text-primary, #f9fafb);
+}
+
+[data-theme='dark'] .delete-option-warning {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.board-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
 }

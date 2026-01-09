@@ -10,6 +10,7 @@ interface BoardModalProps {
     folder?: Folder;
     tab?: Tab;
     folders?: Folder[];
+    initialFolderId?: string;
     onSubmit: (data: { name?: string; title?: string; url?: string; color?: string; folderId?: string }) => void;
     onShowToast?: (message: string, type: 'success' | 'error' | 'info') => void;
 }
@@ -22,6 +23,7 @@ const BoardModal: React.FC<BoardModalProps> = ({
     folder,
     tab,
     folders = [],
+    initialFolderId,
     onSubmit,
     onShowToast,
 }) => {
@@ -56,12 +58,12 @@ const BoardModal: React.FC<BoardModalProps> = ({
                 setTitle('');
                 setUrl('');
                 setColor('#3b82f6');
-                setFolderId('');
+                setFolderId(initialFolderId || '');
             }
             setErrors({});
             setIsSubmitting(false);
         }
-    }, [isOpen, mode, type, folder, tab]);
+    }, [isOpen, mode, type, folder, tab, initialFolderId]);
 
     // Focus management
     useEffect(() => {

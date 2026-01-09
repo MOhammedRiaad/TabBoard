@@ -3,7 +3,9 @@ import { useSortable } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Folder, Tab } from '../../../types';
+import { useBoardStore } from '../../../store/boardStore';
 import BoardModal from './BoardModal';
+import FolderDeleteModal from './FolderDeleteModal';
 import '../BoardView.css';
 
 interface BoardNodeProps {
@@ -15,6 +17,7 @@ interface BoardNodeProps {
     onDeleteFolder?: (id: string) => void;
     onDeleteTab?: (id: string) => void;
     onOpenTab?: (url: string) => void;
+    onCreateTab?: (data: { title: string; url: string; folderId?: string }) => void;
     onShowToast?: (message: string, type: 'success' | 'error' | 'info') => void;
     folders?: Folder[];
 }
@@ -28,12 +31,17 @@ const BoardNode: React.FC<BoardNodeProps> = ({
     onDeleteFolder,
     onDeleteTab,
     onOpenTab,
+    onCreateTab,
     onShowToast,
     folders = [],
 }) => {
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showAddTabModal, setShowAddTabModal] = useState(false);
     const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    const { moveAllTabsToFolder } = useBoardStore();
 
     const isFolder = !!folder;
     const folderTabs = isFolder && folder ? tabs.filter(t => t.folderId === folder.id) : [];
@@ -122,13 +130,37 @@ const BoardNode: React.FC<BoardNodeProps> = ({
             e.stopPropagation();
         }
         if (isFolder && folder && onDeleteFolder) {
-            if (window.confirm(`Are you sure you want to delete the folder "${folder.name}"?`)) {
-                onDeleteFolder(folder.id);
+            // Check if folder has tabs
+            if (folderTabs.length > 0) {
+                // Show the delete modal for folders with tabs
+                setShowDeleteModal(true);
+            } else {
+                // Simple confirmation for empty folders
+                if (window.confirm(`Are you sure you want to delete the empty folder "${folder.name}"?`)) {
+                    onDeleteFolder(folder.id);
+                }
             }
         } else if (tab && onDeleteTab) {
             if (window.confirm(`Are you sure you want to delete "${tab.title}"?`)) {
                 onDeleteTab(tab.id);
             }
+        }
+    };
+
+    const handleMoveAndDelete = (targetFolderId: string) => {
+        if (folder && onDeleteFolder) {
+            // Move all tabs to the target folder
+            moveAllTabsToFolder(folder.id, targetFolderId);
+            // Delete the folder
+            onDeleteFolder(folder.id);
+            onShowToast?.(`Moved ${folderTabs.length} tabs and deleted folder "${folder.name}"`, 'success');
+        }
+    };
+
+    const handleForceDelete = () => {
+        if (folder && onDeleteFolder) {
+            onDeleteFolder(folder.id);
+            onShowToast?.(`Deleted folder "${folder.name}" and ${folderTabs.length} tabs`, 'info');
         }
     };
 
@@ -156,11 +188,29 @@ const BoardNode: React.FC<BoardNodeProps> = ({
 
     const nodeRef = isFolder ? setDroppableRef : setSortableRef || null;
 
+    // Folder color styling
+    // Check if dark mode is enabled
+    const isDarkMode =
+        typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark';
+
+    const folderColorStyle: React.CSSProperties =
+        isFolder && folder?.color
+            ? {
+                  borderLeftColor: folder.color,
+                  background: isDarkMode
+                      ? `linear-gradient(135deg, ${folder.color}15 0%, rgba(31, 41, 55, 0.6) 100%)`
+                      : `linear-gradient(135deg, ${folder.color}08 0%, var(--color-bg-primary, #ffffff) 100%)`,
+              }
+            : {};
+
     return (
         <>
             <div
                 ref={nodeRef}
-                style={!isFolder ? dragStyle : undefined}
+                style={{
+                    ...(!isFolder ? dragStyle : undefined),
+                    ...folderColorStyle,
+                }}
                 className={`board-node ${isFolder ? 'board-folder' : 'board-item'} ${isOver ? 'board-dropping' : ''} ${isDragging ? 'board-dragging' : ''}`}
                 aria-label={isFolder ? `Folder: ${folder?.name}` : `Tab: ${tab?.title}`}
                 aria-expanded={isFolder ? isExpanded : undefined}
@@ -181,7 +231,18 @@ const BoardNode: React.FC<BoardNodeProps> = ({
                             </span>
                         )}
                         {isFolder ? (
-                            <span className="board-icon board-folder-icon" aria-hidden="true">
+                            <span
+                                className="board-icon board-folder-icon"
+                                aria-hidden="true"
+                                style={
+                                    folder?.color
+                                        ? {
+                                              background: `linear-gradient(135deg, ${folder.color}15 0%, ${folder.color}08 100%)`,
+                                              color: folder.color,
+                                          }
+                                        : undefined
+                                }
+                            >
                                 {isExpanded ? '📂' : '📁'}
                             </span>
                         ) : (
@@ -237,6 +298,20 @@ const BoardNode: React.FC<BoardNodeProps> = ({
                                     🔗
                                 </button>
                             )}
+                            {isFolder && onCreateTab && (
+                                <button
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setShowAddTabModal(true);
+                                    }}
+                                    className="board-action-btn"
+                                    title="Add tab to this folder"
+                                    aria-label="Add tab to folder"
+                                    type="button"
+                                >
+                                    ➕
+                                </button>
+                            )}
                             <button
                                 onClick={e => {
                                     e.stopPropagation();
@@ -289,6 +364,42 @@ const BoardNode: React.FC<BoardNodeProps> = ({
                 onSubmit={handleEditSubmit}
                 onShowToast={onShowToast}
             />
+
+            {/* Folder Delete Modal */}
+            {isFolder && folder && (
+                <FolderDeleteModal
+                    isOpen={showDeleteModal}
+                    folder={folder}
+                    folderTabCount={folderTabs.length}
+                    availableFolders={folders.filter(f => f.id !== folder.id)}
+                    onClose={() => setShowDeleteModal(false)}
+                    onMoveAndDelete={handleMoveAndDelete}
+                    onForceDelete={handleForceDelete}
+                />
+            )}
+
+            {/* Add Tab Modal for Folder */}
+            {isFolder && folder && (
+                <BoardModal
+                    isOpen={showAddTabModal}
+                    onClose={() => setShowAddTabModal(false)}
+                    mode="create"
+                    type="tab"
+                    folders={folders}
+                    initialFolderId={folder.id}
+                    onSubmit={data => {
+                        if (data.title && data.url && onCreateTab) {
+                            onCreateTab({
+                                title: data.title,
+                                url: data.url,
+                                folderId: folder.id,
+                            });
+                            setShowAddTabModal(false);
+                        }
+                    }}
+                    onShowToast={onShowToast}
+                />
+            )}
 
             {/* Render folder children */}
             {isFolder && isExpanded && folderTabs.length > 0 && (

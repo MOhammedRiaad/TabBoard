@@ -12,7 +12,9 @@ interface BoardListProps {
     onDeleteFolder?: (id: string) => void;
     onDeleteTab?: (id: string) => void;
     onOpenTab?: (url: string) => void;
+    onCreateTab?: (data: { title: string; url: string; folderId?: string }) => void;
     onShowToast?: (message: string, type: 'success' | 'error' | 'info') => void;
+    viewMode?: 'list' | 'grid';
 }
 
 const BoardList: React.FC<BoardListProps> = ({
@@ -23,7 +25,9 @@ const BoardList: React.FC<BoardListProps> = ({
     onDeleteFolder,
     onDeleteTab,
     onOpenTab,
+    onCreateTab,
     onShowToast,
+    viewMode = 'list',
 }) => {
     // Separate tabs that belong to folders vs tabs without folders
     const tabsWithoutFolders = tabs.filter(tab => !tab.folderId || tab.folderId === '');
@@ -32,7 +36,7 @@ const BoardList: React.FC<BoardListProps> = ({
     const allTabIds = tabs.map(t => t.id);
 
     return (
-        <div className="board-list">
+        <div className={`board-list ${viewMode === 'grid' ? 'grid-view' : ''}`}>
             <SortableContext items={allTabIds} strategy={verticalListSortingStrategy}>
                 {/* Render folders with their tabs */}
                 {folders.map(folder => (
@@ -45,6 +49,7 @@ const BoardList: React.FC<BoardListProps> = ({
                             onDeleteFolder={onDeleteFolder}
                             onDeleteTab={onDeleteTab}
                             onOpenTab={onOpenTab}
+                            onCreateTab={onCreateTab}
                             onShowToast={onShowToast}
                             folders={folders}
                         />

@@ -38,6 +38,7 @@ const BoardView: React.FC = () => {
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [draggedHistoryItem, setDraggedHistoryItem] = useState<HistoryItem | null>(null);
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -334,6 +335,8 @@ const BoardView: React.FC = () => {
                     onShowHistory={() => setIsHistoryPanelOpen(!isHistoryPanelOpen)}
                     isHistoryOpen={isHistoryPanelOpen}
                     onShowToast={showToast}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
                 />
 
                 {boardFolders.length === 0 && !hasCheckedForDefaultBoard.current ? (
@@ -360,7 +363,9 @@ const BoardView: React.FC = () => {
                         onDeleteFolder={handleDeleteFolder}
                         onDeleteTab={handleDeleteTab}
                         onOpenTab={handleOpenTab}
+                        onCreateTab={handleCreateTab}
                         onShowToast={showToast}
+                        viewMode={viewMode}
                     />
                 )}
 
