@@ -58,6 +58,13 @@ const AppNav = forwardRef<HTMLInputElement, AppNavProps>(({ onExport, onImportCl
                 >
                     🎨 Canvas
                 </button>
+                <button
+                    className={activeView === 'bookmarks' ? 'nav-btn active' : 'nav-btn'}
+                    onClick={() => setActiveView('bookmarks')}
+                    aria-current={activeView === 'bookmarks' ? 'page' : undefined}
+                >
+                    🔖 Bookmarks
+                </button>
             </div>
 
             <div className="export-import">

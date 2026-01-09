@@ -7,6 +7,7 @@ import SessionsView from './features/sessions/SessionsView';
 import TodayView from './features/today/TodayView';
 import AnalyticsDashboard from './features/analytics/AnalyticsDashboard';
 import CanvasContainer from './features/canvas/components/CanvasContainer';
+import BookmarkView from './features/bookmarks/BookmarkView';
 import CommandPalette from './features/ui/components/CommandPalette';
 import AppHeader from './features/navigation/components/AppHeader';
 import AppNav from './features/navigation/components/AppNav';
@@ -32,8 +33,8 @@ function App() {
 
     // Use keyboard shortcuts
     useKeyboardShortcuts(
-        activeView as 'boards' | 'history' | 'sessions' | 'today',
-        setActiveView as (view: 'boards' | 'history' | 'sessions' | 'today') => void
+        activeView as 'boards' | 'history' | 'sessions' | 'today' | 'bookmarks',
+        setActiveView as (view: 'boards' | 'history' | 'sessions' | 'today' | 'bookmarks') => void
     );
 
     const handleExport = async () => {
@@ -80,6 +81,9 @@ function App() {
                     break;
                 case 'session':
                     setActiveView('sessions');
+                    break;
+                case 'bookmark':
+                    setActiveView('bookmarks');
                     break;
             }
         },
@@ -130,6 +134,8 @@ function App() {
                 return <AnalyticsDashboard />;
             case 'canvas':
                 return <CanvasContainer />;
+            case 'bookmarks':
+                return <BookmarkView />;
             case 'today':
             default:
                 return <TodayView />;
