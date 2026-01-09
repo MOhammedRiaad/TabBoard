@@ -1,0 +1,314 @@
+import React, { useState, useEffect } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+import { Folder, Tab } from '../../../types';
+import BoardModal from './BoardModal';
+import '../BoardView.css';
+
+interface BoardNodeProps {
+    folder?: Folder;
+    tab?: Tab;
+    tabs?: Tab[];
+    onUpdateFolder?: (id: string, changes: { name?: string; color?: string }) => void;
+    onUpdateTab?: (id: string, changes: { title?: string; url?: string; folderId?: string }) => void;
+    onDeleteFolder?: (id: string) => void;
+    onDeleteTab?: (id: string) => void;
+    onOpenTab?: (url: string) => void;
+    onShowToast?: (message: string, type: 'success' | 'error' | 'info') => void;
+    folders?: Folder[];
+}
+
+const BoardNode: React.FC<BoardNodeProps> = ({
+    folder,
+    tab,
+    tabs = [],
+    onUpdateFolder,
+    onUpdateTab,
+    onDeleteFolder,
+    onDeleteTab,
+    onOpenTab,
+    onShowToast,
+    folders = [],
+}) => {
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const isFolder = !!folder;
+    const folderTabs = isFolder && folder ? tabs.filter(t => t.folderId === folder.id) : [];
+
+    // Make folders droppable
+    const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+        id: folder?.id || '',
+        disabled: !isFolder,
+        data: {
+            type: 'Folder',
+            folder,
+        },
+    });
+
+    // Make tabs sortable/draggable
+    const sortable = useSortable({
+        id: tab?.id || '',
+        disabled: !tab || isFolder,
+        data: {
+            type: 'Tab',
+            tab,
+        },
+    });
+
+    const {
+        attributes: sortableAttributes,
+        listeners: sortableListeners,
+        setNodeRef: setSortableRef,
+        transform,
+        transition,
+        isDragging,
+    } = tab && !isFolder
+        ? sortable
+        : { attributes: {}, listeners: {}, setNodeRef: null, transform: null, transition: null, isDragging: false };
+
+    const dragStyle: React.CSSProperties = {
+        transform: CSS.Transform.toString(transform),
+        transition: transition || undefined,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    // Get favicon for tab
+    useEffect(() => {
+        if (tab && tab.url) {
+            try {
+                const url = new URL(tab.url);
+                const favicon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=32`;
+                setFaviconUrl(favicon);
+            } catch {
+                setFaviconUrl(null);
+            }
+        }
+    }, [tab]);
+
+    const handleEditSubmit = (data: {
+        name?: string;
+        title?: string;
+        url?: string;
+        color?: string;
+        folderId?: string;
+    }) => {
+        if (isFolder && folder && onUpdateFolder) {
+            onUpdateFolder(folder.id, {
+                name: data.name,
+                color: data.color,
+            });
+        } else if (tab && onUpdateTab) {
+            onUpdateTab(tab.id, {
+                title: data.title,
+                url: data.url,
+                folderId: data.folderId || '',
+            });
+        }
+    };
+
+    const handleClick = () => {
+        if (isFolder) {
+            setIsExpanded(!isExpanded);
+        } else if (tab && tab.url && onOpenTab) {
+            onOpenTab(tab.url);
+        }
+    };
+
+    const handleDelete = (e?: React.MouseEvent) => {
+        if (e) {
+            e.stopPropagation();
+        }
+        if (isFolder && folder && onDeleteFolder) {
+            if (window.confirm(`Are you sure you want to delete the folder "${folder.name}"?`)) {
+                onDeleteFolder(folder.id);
+            }
+        } else if (tab && onDeleteTab) {
+            if (window.confirm(`Are you sure you want to delete "${tab.title}"?`)) {
+                onDeleteTab(tab.id);
+            }
+        }
+    };
+
+    const handleCopyUrl = async () => {
+        if (tab && tab.url) {
+            try {
+                await navigator.clipboard.writeText(tab.url);
+                onShowToast?.('URL copied to clipboard!', 'success');
+            } catch (error) {
+                console.error('Failed to copy URL:', error);
+                onShowToast?.('Failed to copy URL', 'error');
+            }
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+        } else if (e.key === 'Delete') {
+            e.preventDefault();
+            handleDelete();
+        }
+    };
+
+    const nodeRef = isFolder ? setDroppableRef : setSortableRef || null;
+
+    return (
+        <>
+            <div
+                ref={nodeRef}
+                style={!isFolder ? dragStyle : undefined}
+                className={`board-node ${isFolder ? 'board-folder' : 'board-item'} ${isOver ? 'board-dropping' : ''} ${isDragging ? 'board-dragging' : ''}`}
+                aria-label={isFolder ? `Folder: ${folder?.name}` : `Tab: ${tab?.title}`}
+                aria-expanded={isFolder ? isExpanded : undefined}
+                onKeyDown={handleKeyDown}
+                {...(!isFolder && tab
+                    ? { tabIndex: 0, role: 'button', ...sortableAttributes }
+                    : { tabIndex: 0, role: 'button' })}
+            >
+                <div className="board-node-content">
+                    <div
+                        className="board-node-main"
+                        onClick={handleClick}
+                        style={{ cursor: !isFolder ? 'grab' : 'pointer' }}
+                    >
+                        {!isFolder && tab && (
+                            <span className="board-drag-handle" {...sortableListeners} {...sortableAttributes}>
+                                ⋮⋮
+                            </span>
+                        )}
+                        {isFolder ? (
+                            <span className="board-icon board-folder-icon" aria-hidden="true">
+                                {isExpanded ? '📂' : '📁'}
+                            </span>
+                        ) : (
+                            <span className="board-icon board-favicon" aria-hidden="true">
+                                {faviconUrl ? (
+                                    <img
+                                        src={faviconUrl}
+                                        alt=""
+                                        className="board-favicon-img"
+                                        onError={() => setFaviconUrl(null)}
+                                    />
+                                ) : (
+                                    <span className="board-default-icon">🌐</span>
+                                )}
+                            </span>
+                        )}
+                        <div className="board-node-info">
+                            <div className="board-node-title-row">
+                                <span className="board-title" title={isFolder ? folder?.name : tab?.title}>
+                                    {isFolder ? folder?.name : tab?.title}
+                                </span>
+                                {isFolder && folderTabs.length > 0 && (
+                                    <span className="board-children-count">{folderTabs.length}</span>
+                                )}
+                            </div>
+                            {!isFolder && tab && tab.url && (
+                                <span className="board-url" title={tab.url}>
+                                    {(() => {
+                                        try {
+                                            const url = new URL(tab.url);
+                                            return url.hostname.replace('www.', '');
+                                        } catch {
+                                            return tab.url.length > 50 ? `${tab.url.substring(0, 50)}...` : tab.url;
+                                        }
+                                    })()}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    <div className="board-node-actions">
+                        <div className="board-quick-actions">
+                            {!isFolder && tab && tab.url && (
+                                <button
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        if (onOpenTab) onOpenTab(tab.url);
+                                    }}
+                                    className="board-action-btn"
+                                    title="Open in new tab"
+                                    aria-label="Open tab in new tab"
+                                    type="button"
+                                >
+                                    🔗
+                                </button>
+                            )}
+                            <button
+                                onClick={e => {
+                                    e.stopPropagation();
+                                    setShowEditModal(true);
+                                }}
+                                className="board-action-btn"
+                                title={`Edit ${isFolder ? 'folder' : 'tab'}`}
+                                aria-label={`Edit ${isFolder ? 'folder' : 'tab'}`}
+                                type="button"
+                            >
+                                ✏️
+                            </button>
+                            {!isFolder && tab && tab.url && (
+                                <button
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        handleCopyUrl();
+                                    }}
+                                    className="board-action-btn"
+                                    title="Copy URL to clipboard"
+                                    aria-label="Copy URL to clipboard"
+                                    type="button"
+                                >
+                                    📋
+                                </button>
+                            )}
+                            <button
+                                onClick={handleDelete}
+                                className="board-action-btn board-action-btn-danger"
+                                title={`Delete ${isFolder ? 'folder' : 'tab'}`}
+                                aria-label={`Delete ${isFolder ? 'folder' : 'tab'}`}
+                                type="button"
+                            >
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Edit Modal */}
+            <BoardModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                mode="edit"
+                type={isFolder ? 'folder' : 'tab'}
+                folder={folder}
+                tab={tab}
+                folders={folders}
+                onSubmit={handleEditSubmit}
+                onShowToast={onShowToast}
+            />
+
+            {/* Render folder children */}
+            {isFolder && isExpanded && folderTabs.length > 0 && (
+                <div className="board-folder-children">
+                    {folderTabs.map(childTab => (
+                        <BoardNode
+                            key={childTab.id}
+                            tab={childTab}
+                            tabs={tabs}
+                            onUpdateTab={onUpdateTab}
+                            onDeleteTab={onDeleteTab}
+                            onOpenTab={onOpenTab}
+                            onShowToast={onShowToast}
+                            folders={folders}
+                        />
+                    ))}
+                </div>
+            )}
+        </>
+    );
+};
+
+export default BoardNode;
