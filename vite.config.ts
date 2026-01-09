@@ -15,6 +15,18 @@ export default defineConfig({
         {
           src: 'assets/*',
           dest: './assets/'
+        },
+        {
+          src: 'onboarding.html',
+          dest: './'
+        },
+        {
+          src: 'onboarding.css',
+          dest: './'
+        },
+        {
+          src: 'onboarding.js',
+          dest: './'
         }
       ]
     })

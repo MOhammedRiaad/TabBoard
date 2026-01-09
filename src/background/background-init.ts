@@ -1,8 +1,15 @@
 import { getAllFolders, addFolder } from './storage';
 
 // Initialize the extension when installed
-chrome.runtime.onInstalled.addListener(async () => {
-    console.log('TabBoard extension installed');
+chrome.runtime.onInstalled.addListener(async details => {
+    console.log('TabBoard extension installed', details);
+
+    // On first install, open the onboarding page
+    if (details.reason === 'install') {
+        console.log('First install detected - opening onboarding page');
+        const onboardingUrl = chrome.runtime.getURL('onboarding.html');
+        await chrome.tabs.create({ url: onboardingUrl });
+    }
 
     // Create a default board and folder if none exist
     const folders = await getAllFolders();
