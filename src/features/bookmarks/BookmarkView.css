@@ -298,6 +298,7 @@
         opacity: 0;
         transform: translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -563,11 +564,13 @@
 }
 
 .bookmark-filter-indicator {
-    display: none; /* Hidden in new layout - shown in toggle badge */
+    display: none;
+    /* Hidden in new layout - shown in toggle badge */
 }
 
 .bookmark-filter-badge {
-    display: none; /* Hidden in new layout */
+    display: none;
+    /* Hidden in new layout */
 }
 
 /* ============================================
@@ -886,7 +889,8 @@
 }
 
 .bookmark-folder::before {
-    display: none; /* Removed old gradient bar */
+    display: none;
+    /* Removed old gradient bar */
 }
 
 .bookmark-folder:hover {
@@ -1185,6 +1189,7 @@
     100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.6;
     }
@@ -1256,6 +1261,7 @@
         opacity: 0;
         transform: translateX(100%);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -1332,6 +1338,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -1354,6 +1361,7 @@
         opacity: 0;
         transform: translateY(20px) scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -2057,4 +2065,107 @@
     outline: 3px solid var(--color-primary, #3b82f6);
     outline-offset: 2px;
     z-index: 1;
+}
+
+/* ============================================
+   GRID VIEW LAYOUT
+   ============================================ */
+
+/* Grid View for Bookmarks - matches Board design */
+.bookmark-tree.grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-left: 0 !important;
+}
+
+@media (min-width: 640px) {
+    .bookmark-tree.grid-view {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.25rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .bookmark-tree.grid-view {
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+@media (min-width: 1536px) {
+    .bookmark-tree.grid-view {
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    }
+}
+
+/* Active state for view toggle buttons */
+.bookmark-icon-btn.active {
+    background: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #3b82f6);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.bookmark-icon-btn.active:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+/* ============================================
+   BOOKMARK ICON STYLES (matching Board design)
+   ============================================ */
+
+.bookmark-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 1.25rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--color-bg-secondary, #f9fafb);
+}
+
+.bookmark-folder-icon {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.03) 100%);
+    color: var(--color-primary, #3b82f6);
+    margin: 15px;
+}
+
+.bookmark-favicon {
+    background: var(--color-bg-primary, #ffffff);
+    border: 1.5px solid var(--color-border, #e5e7eb);
+    padding: 6px;
+    margin-left: 15px;
+}
+
+.bookmark-favicon-img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: block;
+}
+
+.bookmark-default-icon {
+    font-size: 1.125rem;
+    line-height: 1;
+    opacity: 0.7;
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .bookmark-icon {
+    background: var(--color-bg-tertiary, #374151);
+}
+
+[data-theme='dark'] .bookmark-folder-icon {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
+}
+
+[data-theme='dark'] .bookmark-favicon {
+    background: var(--color-bg-secondary, #1f2937);
+    border-color: var(--color-border, #4b5563);
 }

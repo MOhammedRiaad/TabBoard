@@ -30,6 +30,7 @@ const BookmarkView: React.FC = () => {
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
     const [sortConfig, setSortConfig] = useState<SortConfig>(() => loadSortConfig());
     const [filterConfig, setFilterConfig] = useState<FilterConfig>(() => loadFilterConfig());
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
     useEffect(() => {
         // Load bookmarks when the component mounts
@@ -277,6 +278,8 @@ const BookmarkView: React.FC = () => {
                 onSortChange={handleSortChange}
                 filterConfig={filterConfig}
                 onFilterChange={handleFilterChange}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
             />
 
             {error && <div className="bookmark-error">Error: {error}</div>}
@@ -313,6 +316,7 @@ const BookmarkView: React.FC = () => {
                     }}
                     onShowToast={showToast}
                     folders={sortedBookmarkTree}
+                    viewMode={viewMode}
                 />
             )}
 

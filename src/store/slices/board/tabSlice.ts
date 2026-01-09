@@ -67,6 +67,20 @@ export const createTabSlice: BoardStoreCreator<TabSlice> = set => ({
             return newState;
         }),
 
+    moveAllTabsToFolder: (sourceFolderId, targetFolderId) =>
+        set(state => {
+            const updatedTabs = state.tabs.map(tab => {
+                if (tab.folderId === sourceFolderId) {
+                    const updatedTab = { ...tab, folderId: targetFolderId };
+                    updateTabInDB(updatedTab).catch(console.error);
+                    return updatedTab;
+                }
+                return tab;
+            });
+
+            return { tabs: updatedTabs };
+        }),
+
     reorderTab: (tabId, newIndex, folderId) =>
         set(state => {
             const folderTabs = state.tabs

@@ -21,6 +21,8 @@ interface BookmarkHeaderProps {
     onSortChange: (config: SortConfig) => void;
     filterConfig: FilterConfig;
     onFilterChange: (config: FilterConfig) => void;
+    viewMode: 'list' | 'grid';
+    onViewModeChange: (mode: 'list' | 'grid') => void;
 }
 
 const BookmarkHeader: React.FC<BookmarkHeaderProps> = ({
@@ -37,6 +39,8 @@ const BookmarkHeader: React.FC<BookmarkHeaderProps> = ({
     onSortChange,
     filterConfig,
     onFilterChange,
+    viewMode,
+    onViewModeChange,
 }) => {
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
     const [showFolderModal, setShowFolderModal] = useState(false);
@@ -100,6 +104,44 @@ const BookmarkHeader: React.FC<BookmarkHeaderProps> = ({
                             </button>
                         </div>
                     )}
+                    {/* View Toggle Buttons */}
+                    <button
+                        onClick={() => onViewModeChange('grid')}
+                        className={`bookmark-icon-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                        title="Grid view"
+                        aria-label="Switch to grid view"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                        >
+                            <rect x="2" y="2" width="5" height="5" rx="1" />
+                            <rect x="9" y="2" width="5" height="5" rx="1" />
+                            <rect x="2" y="9" width="5" height="5" rx="1" />
+                            <rect x="9" y="9" width="5" height="5" rx="1" />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={() => onViewModeChange('list')}
+                        className={`bookmark-icon-btn ${viewMode === 'list' ? 'active' : ''}`}
+                        title="List view"
+                        aria-label="Switch to list view"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                        >
+                            <path d="M3 4h10M3 8h10M3 12h10" />
+                        </svg>
+                    </button>
                 </div>
                 <button
                     onClick={() => setShowBookmarkModal(true)}

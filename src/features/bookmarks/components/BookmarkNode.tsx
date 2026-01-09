@@ -119,7 +119,7 @@ const BookmarkNode: React.FC<BookmarkNodeProps> = ({
                                         onError={() => setFaviconUrl(null)}
                                     />
                                 ) : (
-                                    <span className="bookmark-default-icon">🔖</span>
+                                    <span className="bookmark-default-icon">🌐</span>
                                 )}
                             </span>
                         )}
