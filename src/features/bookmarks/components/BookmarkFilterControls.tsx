@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bookmark } from '../../../types';
-import { FilterConfig, FilterType, getDefaultFilterConfig } from '../utils/filterUtils';
+import { FilterConfig, FilterType } from '../utils/filterUtils';
 import { getAllDomains } from '../utils/domainUtils';
 import '../BookmarkView.css';
 
@@ -40,10 +40,6 @@ const BookmarkFilterControls: React.FC<BookmarkFilterControlsProps> = ({ filterC
         });
     };
 
-    const handleClearFilters = () => {
-        onFilterChange(getDefaultFilterConfig());
-    };
-
     // Get all folders for the dropdown (excluding root folders)
     // Helper to recursively collect all folders
     const getAllFoldersRecursive = (items: Bookmark[]): Bookmark[] => {
@@ -65,9 +61,6 @@ const BookmarkFilterControls: React.FC<BookmarkFilterControlsProps> = ({ filterC
 
     // Get all unique domains from bookmarks
     const availableDomains = getAllDomains(folders);
-
-    const hasActiveFilters =
-        filterConfig.type !== 'all' || filterConfig.folderId !== undefined || filterConfig.domain !== undefined;
 
     return (
         <div className="bookmark-filter-controls">
@@ -129,42 +122,6 @@ const BookmarkFilterControls: React.FC<BookmarkFilterControlsProps> = ({ filterC
                     ))}
                 </select>
             </div>
-
-            {hasActiveFilters && (
-                <button
-                    onClick={handleClearFilters}
-                    className="bookmark-filter-clear-btn"
-                    title="Clear all filters"
-                    aria-label="Clear all filters"
-                    type="button"
-                >
-                    ✕ Clear
-                </button>
-            )}
-
-            {hasActiveFilters && (
-                <div className="bookmark-filter-indicator" aria-live="polite" aria-atomic="true">
-                    <span className="bookmark-filter-badge">
-                        {filterConfig.type !== 'all' && (
-                            <span>
-                                {filterConfig.type === 'bookmarks' ? '📑' : '📁'} {filterConfig.type}
-                            </span>
-                        )}
-                        {filterConfig.folderId && (
-                            <span>
-                                {filterConfig.type !== 'all' && ' • '}
-                                📂 {availableFolders.find(f => f.id === filterConfig.folderId)?.title || 'Folder'}
-                            </span>
-                        )}
-                        {filterConfig.domain && (
-                            <span>
-                                {(filterConfig.type !== 'all' || filterConfig.folderId) && ' • '}
-                                🌐 {filterConfig.domain}
-                            </span>
-                        )}
-                    </span>
-                </div>
-            )}
         </div>
     );
 };
