@@ -1,4 +1,6 @@
 import React from 'react';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import '../HistoryView.css';
 import { Folder, HistoryItem as HistoryItemType } from '../../../types';
 
@@ -23,9 +25,29 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
     onSelectHistoryItem,
     onAddToFolder,
 }) => {
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+        id: `history_${item.id}`,
+        data: {
+            type: 'HistoryItem',
+            item,
+        },
+    });
+
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        opacity: isDragging ? 0.5 : 1,
+        touchAction: 'none',
+    };
+
     return (
-        <div className="history-item">
-            <a href={item.url} target="_blank" rel="noopener noreferrer" className="history-link">
+        <div ref={setNodeRef} style={style} {...listeners} {...attributes} className="history-item">
+            <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="history-link"
+                onClick={e => isDragging && e.preventDefault()}
+            >
                 <div className="history-content">
                     {item.favicon && (
                         <img
@@ -48,7 +70,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
                     </div>
                 </div>
             </a>
-            <div className="history-actions">
+            <div className="history-actions" onPointerDown={e => e.stopPropagation()}>
                 {isAdded ? (
                     <div className="added-indicator">
                         <span className="added-text">✓ Added to folder</span>
@@ -72,6 +94,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
                             }}
                             className="folder-select"
                             onClick={e => e.stopPropagation()}
+                            onPointerDown={e => e.stopPropagation()}
                         >
                             <option value="">Select folder...</option>
                             {folders.map(folder => (
@@ -87,6 +110,7 @@ const HistoryItem: React.FC<HistoryItemProps> = ({
                             }}
                             className="add-to-folder-btn"
                             disabled={!selectedFolderId || !isSelected}
+                            onPointerDown={e => e.stopPropagation()}
                         >
                             Add to Folder
                         </button>

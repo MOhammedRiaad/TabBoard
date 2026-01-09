@@ -1,15 +1,8 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { useUIStore, useUIActions } from '../../ui/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
 
-interface AppNavProps {
-    onExport: () => void;
-    onImportClick: () => void;
-    onImportFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-// Forward ref to allow parent to access the file input
-const AppNav = forwardRef<HTMLInputElement, AppNavProps>(({ onExport, onImportClick, onImportFile }, ref) => {
+const AppNav: React.FC = () => {
     const activeView = useUIStore(useShallow(state => state.activeView));
     const { setActiveView } = useUIActions();
 
@@ -30,13 +23,7 @@ const AppNav = forwardRef<HTMLInputElement, AppNavProps>(({ onExport, onImportCl
                 >
                     📋 Boards
                 </button>
-                <button
-                    className={activeView === 'history' ? 'nav-btn active' : 'nav-btn'}
-                    onClick={() => setActiveView('history')}
-                    aria-current={activeView === 'history' ? 'page' : undefined}
-                >
-                    📜 History
-                </button>
+
                 <button
                     className={activeView === 'sessions' ? 'nav-btn active' : 'nav-btn'}
                     onClick={() => setActiveView('sessions')}
@@ -66,37 +53,8 @@ const AppNav = forwardRef<HTMLInputElement, AppNavProps>(({ onExport, onImportCl
                     🔖 Bookmarks
                 </button>
             </div>
-
-            <div className="export-import">
-                <button
-                    className="nav-btn export-btn"
-                    onClick={onExport}
-                    title="Export Data (Ctrl+Shift+E)"
-                    aria-label="Export data"
-                >
-                    📤 Export
-                </button>
-                <button
-                    className="nav-btn import-btn"
-                    onClick={onImportClick}
-                    title="Import Data"
-                    aria-label="Import data"
-                >
-                    📥 Import
-                </button>
-                <input
-                    type="file"
-                    ref={ref}
-                    onChange={onImportFile}
-                    accept=".json"
-                    style={{ display: 'none' }}
-                    aria-hidden="true"
-                />
-            </div>
         </nav>
     );
-});
-
-AppNav.displayName = 'AppNav';
+};
 
 export default AppNav;

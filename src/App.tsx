@@ -7,6 +7,8 @@ import SessionsView from './features/sessions/SessionsView';
 import TodayView from './features/today/TodayView';
 import AnalyticsDashboard from './features/analytics/AnalyticsDashboard';
 import CanvasContainer from './features/canvas/components/CanvasContainer';
+import TldrawContainer from './features/canvas/components/TldrawContainer';
+import SettingsView from './features/settings/SettingsView';
 import BookmarkView from './features/bookmarks/BookmarkView';
 import CommandPalette from './features/ui/components/CommandPalette';
 import AppHeader from './features/navigation/components/AppHeader';
@@ -132,6 +134,19 @@ function App() {
                 return <SessionsView />;
             case 'analytics':
                 return <AnalyticsDashboard />;
+            case 'canvas': {
+                const canvasMode = localStorage.getItem('tabboard_canvas_mode') || 'custom';
+                return canvasMode === 'tldraw' ? <TldrawContainer /> : <CanvasContainer />;
+            }
+            case 'settings':
+                return (
+                    <SettingsView
+                        onExport={handleExport}
+                        onImportClick={handleImportClick}
+                        onImportFile={handleImport}
+                        fileInputRef={fileInputRef}
+                    />
+                );
             case 'canvas':
                 return <CanvasContainer />;
             case 'bookmarks':
@@ -148,12 +163,7 @@ function App() {
 
             <AppHeader onSearchResultClick={handleSearchResultClick} />
 
-            <AppNav
-                onExport={handleExport}
-                onImportClick={handleImportClick}
-                onImportFile={handleImport}
-                ref={fileInputRef}
-            />
+            <AppNav />
 
             <main className={`app-main ${activeView === 'canvas' ? 'app-main-canvas' : ''}`}>{renderView()}</main>
 

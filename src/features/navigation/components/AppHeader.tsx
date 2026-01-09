@@ -9,7 +9,7 @@ interface AppHeaderProps {
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({ onSearchResultClick }) => {
-    const { toggleCommandPalette } = useUIActions();
+    const { toggleCommandPalette, setActiveView } = useUIActions();
 
     return (
         <header className="app-header">
@@ -23,6 +23,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onSearchResultClick }) => {
 
             <div className="header-right">
                 <ThemeToggle />
+                <button
+                    className="settings-trigger"
+                    onClick={() => setActiveView('settings')}
+                    title="Settings"
+                    aria-label="Open settings"
+                >
+                    ⚙️
+                </button>
                 <button
                     className="command-palette-trigger"
                     onClick={() => toggleCommandPalette()}

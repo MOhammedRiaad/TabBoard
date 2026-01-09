@@ -49,7 +49,8 @@
     gap: var(--spacing-sm);
 }
 
-.command-palette-trigger {
+.command-palette-trigger,
+.settings-trigger {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -64,7 +65,8 @@
     transition: all var(--transition-fast);
 }
 
-.command-palette-trigger:hover {
+.command-palette-trigger:hover,
+.settings-trigger:hover {
     background-color: var(--color-bg-hover);
     border-color: var(--color-primary);
     color: var(--color-primary);
@@ -177,4 +179,21 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
+}
+
+/* Hide tldraw watermark/license message */
+.tlui-license__watermark,
+.tlui-watermark,
+[data-testid='watermark'],
+.tl-watermark {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.tl-watermark_SEE-LICENSE {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
 }

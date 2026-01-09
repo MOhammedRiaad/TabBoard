@@ -20,6 +20,7 @@
         "idb": "^8.0.3",
         "react": "^19.2.3",
         "react-dom": "^19.2.3",
+        "tldraw": "^4.2.3",
         "zustand": "^5.0.9"
     },
     "devDependencies": {

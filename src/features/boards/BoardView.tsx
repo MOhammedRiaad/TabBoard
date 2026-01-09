@@ -1,14 +1,25 @@
-import React, { useEffect, useRef } from 'react';
-import { DndContext, DragEndEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    DndContext,
+    DragEndEvent,
+    DragStartEvent,
+    DragOverlay,
+    useSensor,
+    useSensors,
+    PointerSensor,
+} from '@dnd-kit/core';
 import { useBoardStore } from '../../store/boardStore';
 import TabCard from './components/TabCard';
 import FolderColumn from './components/FolderColumn';
 import AddFolderForm from './components/AddFolderForm';
+import HistorySidePanel from './components/HistorySidePanel';
 import './BoardView.css';
+import { HistoryItem } from '../../types';
 
 const BoardView: React.FC = () => {
-    const { boards, folders, tabs, moveTab, reorderTab, addBoard } = useBoardStore();
+    const { boards, folders, tabs, moveTab, reorderTab, addBoard, addTab } = useBoardStore();
     const hasCheckedForDefaultBoard = useRef(false);
+    const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
 
     // Create a default board if none exists
     const currentBoard =
@@ -59,17 +70,69 @@ const BoardView: React.FC = () => {
     const boardFolders = folders.filter(folder => folder.boardId === currentBoard.id);
 
     const [activeId, setActiveId] = React.useState<string | null>(null);
+    const [draggedHistoryItem, setDraggedHistoryItem] = React.useState<HistoryItem | null>(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        })
+    );
 
     const handleDragStart = (event: DragStartEvent) => {
         if (event.active) {
             setActiveId(event.active.id as string);
+            if (event.active.data.current?.type === 'HistoryItem') {
+                setDraggedHistoryItem(event.active.data.current.item as HistoryItem);
+            }
         }
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
 
-        if (over && active.id !== over.id) {
+        if (!over) {
+            setActiveId(null);
+            setDraggedHistoryItem(null);
+            return;
+        }
+
+        // Handle History Item Drop
+        if (active.data.current?.type === 'HistoryItem') {
+            const historyItem = active.data.current.item as HistoryItem;
+            // Find target folder
+            // 1. Dropped directly on a folder
+            const targetFolderId = folders.find(f => f.id === over.id)?.id;
+
+            // 2. Dropped on a tab (find its folder)
+            const targetTab = tabs.find(t => t.id === over.id);
+            const folderIdFromTab = targetTab?.folderId;
+
+            const finalFolderId = targetFolderId || folderIdFromTab;
+
+            if (finalFolderId) {
+                const tabToAdd = {
+                    id: `tab_${Date.now()}_${historyItem.id}`,
+                    title: historyItem.title,
+                    url: historyItem.url,
+                    favicon: historyItem.favicon,
+                    folderId: finalFolderId,
+                    tabId: null,
+                    lastAccessed: new Date().toISOString(),
+                    status: 'closed' as const,
+                    createdAt: new Date().toISOString(),
+                };
+                addTab(tabToAdd);
+            }
+
+            setActiveId(null);
+            setDraggedHistoryItem(null);
+            return;
+        }
+
+        // Handle Tab Reorder/Move
+        if (active.id !== over.id) {
             const activeTab = tabs.find(t => t.id === active.id);
             const overTab = tabs.find(t => t.id === over.id);
             const overFolder = folders.find(f => f.id === over.id);
@@ -86,9 +149,6 @@ const BoardView: React.FC = () => {
                         }
                     } else {
                         // Different folder - move to that folder
-                        // Note: For simple move, we just set the folderId.
-                        // To insert at specific position would require moveTab to support index or a separate call.
-                        // Users asked for sorting "under the same folder", so basic move is fine here for now.
                         moveTab(active.id as string, overTab.folderId);
                     }
                 } else if (overFolder) {
@@ -96,18 +156,15 @@ const BoardView: React.FC = () => {
                     moveTab(active.id as string, overFolder.id);
                 }
             }
-
-            // Sync with background if needed (store handles it mostly, but moveTab syncs. reorderTab needs to sync too?
-            // reorderTab in store doesn't seem to sync to background/storage explicitly in my implementation earlier?
-            // Wait, I didn't add persistence to reorderTab in the slice! I need to fix that.)
         }
         setActiveId(null);
+        setDraggedHistoryItem(null);
     };
 
     const activeTab = activeId ? tabs.find(t => t.id === activeId) : null;
 
     return (
-        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={sensors}>
             <div className="board-view">
                 <div className="board-header">
                     <h2>{currentBoard?.name || 'Default Board'}</h2>
@@ -122,7 +179,36 @@ const BoardView: React.FC = () => {
                     ))}
                     <AddFolderForm boardId={currentBoard?.id} />
                 </div>
-                <DragOverlay>{activeTab ? <TabCard tab={activeTab} isOverlay /> : null}</DragOverlay>
+
+                <HistorySidePanel isOpen={isHistoryPanelOpen} onClose={() => setIsHistoryPanelOpen(false)} />
+
+                <div className={`history-toggle-wrapper ${isHistoryPanelOpen ? 'open' : ''}`}>
+                    <button
+                        className="history-toggle-btn"
+                        onClick={() => setIsHistoryPanelOpen(!isHistoryPanelOpen)}
+                        title={isHistoryPanelOpen ? 'Close History' : 'Open History'}
+                    >
+                        <span>Load History</span>
+                    </button>
+                </div>
+
+                <DragOverlay>
+                    {activeTab ? <TabCard tab={activeTab} isOverlay /> : null}
+                    {draggedHistoryItem ? (
+                        <div className="history-drag-overlay">
+                            <div className="history-item">
+                                <div className="history-content">
+                                    {draggedHistoryItem.favicon && (
+                                        <img src={draggedHistoryItem.favicon} alt="" className="history-favicon" />
+                                    )}
+                                    <div className="history-text">
+                                        <h3 className="history-title">{draggedHistoryItem.title}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
+                </DragOverlay>
             </div>
         </DndContext>
     );

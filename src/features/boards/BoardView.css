@@ -3,12 +3,34 @@
    ============================================ */
 
 .board-view {
+    padding: 20px;
     height: 100%;
-    width: 100%;
+    overflow-x: auto;
+    position: relative;
+    /* For absolute positioning of panel */
 }
 
 .board-header {
-    margin-bottom: 1rem;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-drag-overlay {
+    background: white;
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 280px;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.history-drag-overlay .history-item {
+    border: none;
+    box-shadow: none;
+    margin: 0;
 }
 
 .board-header h2 {
