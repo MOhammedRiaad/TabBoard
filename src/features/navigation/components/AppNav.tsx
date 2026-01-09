@@ -45,6 +45,13 @@ const AppNav: React.FC = () => {
                 >
                     🎨 Canvas
                 </button>
+                <button
+                    className={activeView === 'bookmarks' ? 'nav-btn active' : 'nav-btn'}
+                    onClick={() => setActiveView('bookmarks')}
+                    aria-current={activeView === 'bookmarks' ? 'page' : undefined}
+                >
+                    🔖 Bookmarks
+                </button>
             </div>
         </nav>
     );

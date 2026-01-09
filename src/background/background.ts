@@ -9,6 +9,7 @@ import './note-service';
 import './history-service';
 import './session-service';
 import './data-service';
+import './bookmark-service';
 import './tab-listeners';
 import './cleanup-service';
 import './message-handler';
