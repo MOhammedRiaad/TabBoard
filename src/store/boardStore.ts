@@ -6,6 +6,7 @@ import { createTaskSlice } from './slices/board/taskSlice';
 import { createNoteSlice } from './slices/board/noteSlice';
 import { createSessionSlice } from './slices/board/sessionSlice';
 import { createHistorySlice } from './slices/board/historySlice';
+import { createBookmarkSlice } from './slices/board/bookmarkSlice';
 
 export const useBoardStore = create<BoardState>()((...a) => ({
     ...createBoardSlice(...a),
@@ -14,4 +15,5 @@ export const useBoardStore = create<BoardState>()((...a) => ({
     ...createNoteSlice(...a),
     ...createSessionSlice(...a),
     ...createHistorySlice(...a),
+    ...createBookmarkSlice(...a),
 }));

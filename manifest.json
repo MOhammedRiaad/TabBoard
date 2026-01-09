@@ -14,7 +14,7 @@
     },
     "action": {},
 
-    "permissions": ["tabs", "tabGroups", "history", "sessions", "storage", "notifications"],
+    "permissions": ["tabs", "tabGroups", "history", "sessions", "storage", "notifications", "bookmarks"],
     "host_permissions": ["<all_urls>"],
     "commands": {
         "_execute_action": {
