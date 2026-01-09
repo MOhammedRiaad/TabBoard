@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import ThemeToggle from '../ui/components/ThemeToggle';
+import Toast from '../bookmarks/components/Toast';
 import './SettingsView.css';
 
 interface SettingsViewProps {
@@ -21,6 +22,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onExport, onImportClick, on
     );
     const [tldrawRoom, setTldrawRoom] = useState(localStorage.getItem('tabboard_tldraw_room') || '');
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+    const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setToast({ message, type });
+    }, []);
 
     const handleClearData = () => {
         if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
@@ -28,8 +34,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onExport, onImportClick, on
             if (typeof chrome !== 'undefined' && chrome.storage) {
                 chrome.storage.local.clear();
             }
-            alert('All data cleared. The extension will reload.');
-            window.location.reload();
+            showToast('All data cleared. Reloading...', 'success');
+            setTimeout(() => window.location.reload(), 1500);
         }
     };
 
@@ -65,10 +71,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onExport, onImportClick, on
 
         // If canvas mode changed, reload
         if (oldCanvasMode !== canvasMode) {
-            alert('Canvas mode changed. The page will reload.');
-            window.location.reload();
+            showToast('Canvas mode changed. Reloading...', 'success');
+            setTimeout(() => window.location.reload(), 1500);
         } else {
-            alert('Canvas settings saved successfully!');
+            showToast('Canvas settings saved successfully!', 'success');
         }
     };
 
@@ -310,6 +316,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onExport, onImportClick, on
                     </div>
                 </section>
             </div>
+
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 };

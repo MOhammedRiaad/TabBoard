@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useBoardStore } from '../../store/boardStore';
 import { Session } from '../../types';
 import './SessionsView.css';
 import SessionHeader from './components/SessionHeader';
 import CreateSessionForm from './components/CreateSessionForm';
 import SessionList from './components/SessionList';
+import Toast from '../bookmarks/components/Toast';
 
 const SessionsView: React.FC = () => {
     const {
@@ -14,6 +15,12 @@ const SessionsView: React.FC = () => {
         updateSessionFromBackground,
         deleteSessionFromBackground,
     } = useBoardStore();
+
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+    const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setToast({ message, type });
+    }, []);
 
     useEffect(() => {
         fetchSessions();
@@ -236,7 +243,7 @@ const SessionsView: React.FC = () => {
 
             // Check if tabIds exists before filtering
             if (!session.tabIds) {
-                alert('This session has no tabs to restore.');
+                showToast('This session has no tabs to restore.', 'error');
                 return;
             }
 
@@ -297,10 +304,10 @@ const SessionsView: React.FC = () => {
             }
 
             console.log(`Restored ${allSessionTabs.length} tabs from session: ${session.name}`);
-            alert(`Restored ${allSessionTabs.length} tabs from session: ${session.name}`);
+            showToast(`Restored ${allSessionTabs.length} tabs from session: ${session.name}`, 'success');
         } catch (error) {
             console.error('Error restoring session:', error);
-            alert('Error restoring session. Please try again.');
+            showToast('Error restoring session. Please try again.', 'error');
         }
     };
 
@@ -311,6 +318,8 @@ const SessionsView: React.FC = () => {
             <CreateSessionForm onCreate={createSession} />
 
             <SessionList sessions={sessions} onRestore={restoreSession} onEnd={endSession} onDelete={deleteSession} />
+
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 };

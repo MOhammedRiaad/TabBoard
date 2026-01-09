@@ -1,15 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useBoardStore } from '../../store/boardStore';
 import { HistoryItem } from '../../types';
 import './HistoryView.css';
 import HistoryHeader from './components/HistoryHeader';
 import HistoryList from './components/HistoryList';
+import Toast from '../bookmarks/components/Toast';
 
 const HistoryView: React.FC = () => {
     const { history, fetchHistory, fetchBrowserHistory, folders, addTab } = useBoardStore();
     const [selectedHistoryItem, setSelectedHistoryItem] = useState<string | null>(null);
     const [selectedFolderId, setSelectedFolderId] = useState<string>('');
     const [addedToFolder, setAddedToFolder] = useState<{ [key: string]: boolean }>({});
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+    const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setToast({ message, type });
+    }, []);
 
     useEffect(() => {
         // Load history items when the component mounts
@@ -26,7 +32,7 @@ const HistoryView: React.FC = () => {
 
     const addToFolder = (historyItem: HistoryItem) => {
         if (!selectedFolderId) {
-            alert('Please select a folder first');
+            showToast('Please select a folder first', 'error');
             return;
         }
 
@@ -51,11 +57,10 @@ const HistoryView: React.FC = () => {
             [historyItem.id]: true,
         }));
 
-        // Reset the selection
         setSelectedHistoryItem(null);
         setSelectedFolderId('');
 
-        alert(`Added "${historyItem.title}" to folder`);
+        showToast(`Added "${historyItem.title}" to folder`, 'success');
     };
 
     return (
@@ -72,6 +77,8 @@ const HistoryView: React.FC = () => {
                 onSelectHistoryItem={setSelectedHistoryItem}
                 onAddToFolder={addToFolder}
             />
+
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 };

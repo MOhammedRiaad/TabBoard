@@ -1,5 +1,5 @@
 // React is used for JSX compilation
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { HashRouter, useNavigate, useLocation } from 'react-router-dom';
 import TimerManager from './features/sessions/components/TimerManager';
 import CommandPalette from './features/ui/components/CommandPalette';
@@ -13,6 +13,7 @@ import { useUIStore, useUIActions, ViewType } from './features/ui/store/uiStore'
 import { useShallow } from 'zustand/react/shallow';
 import { downloadExportFile, importFromFile } from './utils/exportImport';
 import { SearchResult } from './types';
+import BoardToast from './features/boards/components/BoardToast';
 import './App.css';
 
 // Inner App component that uses router hooks
@@ -29,6 +30,11 @@ function AppContent() {
     const { setActiveView, setCommandPaletteOpen } = useUIActions();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+    const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setToast({ message, type });
+    }, []);
 
     // Use refs to track navigation source and prevent infinite loops
     const isNavigatingFromState = useRef(false);
@@ -107,10 +113,10 @@ function AppContent() {
     const handleExport = async () => {
         try {
             await downloadExportFile();
-            alert('Data exported successfully!');
+            showToast('Data exported successfully!', 'success');
         } catch (error) {
             console.error('Export failed:', error);
-            alert('Export failed. Please try again.');
+            showToast('Export failed. Please try again.', 'error');
         }
     };
 
@@ -123,11 +129,11 @@ function AppContent() {
         if (file) {
             try {
                 await importFromFile(file);
-                alert('Data imported successfully! The extension will reload to reflect changes.');
-                window.location.reload(); // Reload to refresh all data
+                showToast('Data imported successfully! Reloading...', 'success');
+                setTimeout(() => window.location.reload(), 1500); // Delay reload to show toast
             } catch (error) {
                 console.error('Import failed:', error);
-                alert('Import failed. Please check the file format and try again.');
+                showToast('Import failed. Please check the file format.', 'error');
             }
         }
         // Reset the input so the same file can be imported again if needed
@@ -214,6 +220,8 @@ function AppContent() {
                     setCommandPaletteOpen(false);
                 }}
             />
+
+            {toast && <BoardToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 }

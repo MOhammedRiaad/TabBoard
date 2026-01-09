@@ -157,7 +157,7 @@ const BookmarkView: React.FC = () => {
             await moveBookmark(id, destination);
         } catch (error) {
             console.error('Error moving bookmark:', error);
-            alert('Failed to move bookmark. Please try again.');
+            showToast('Failed to move bookmark. Please try again.', 'error');
         }
     };
 
