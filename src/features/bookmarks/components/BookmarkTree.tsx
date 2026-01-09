@@ -15,6 +15,7 @@ interface BookmarkTreeProps {
     folders?: Bookmark[];
     level?: number;
     parentId?: string;
+    viewMode?: 'list' | 'grid';
 }
 
 const BookmarkTree: React.FC<BookmarkTreeProps> = ({
@@ -29,6 +30,7 @@ const BookmarkTree: React.FC<BookmarkTreeProps> = ({
     folders = [],
     level = 0,
     parentId,
+    viewMode = 'list',
 }) => {
     // Helper to recursively find bookmarks by parent ID
     const findChildren = (bookmarkList: Bookmark[], targetParentId: string): Bookmark[] => {
@@ -78,7 +80,10 @@ const BookmarkTree: React.FC<BookmarkTreeProps> = ({
     }
 
     return (
-        <div className="bookmark-tree" style={{ marginLeft: `${level * 20}px` }}>
+        <div
+            className={`bookmark-tree ${level === 0 && viewMode === 'grid' ? 'grid-view' : ''}`}
+            style={{ marginLeft: level > 0 ? `${level * 20}px` : undefined }}
+        >
             {bookmarksToDisplay.map(bookmark => {
                 const isFolder = !bookmark.url;
                 const isExpanded = expandedFolders.has(bookmark.id);
@@ -113,6 +118,7 @@ const BookmarkTree: React.FC<BookmarkTreeProps> = ({
                                 folders={folders}
                                 level={level + 1}
                                 parentId={bookmark.id}
+                                viewMode={viewMode}
                             />
                         )}
                     </div>

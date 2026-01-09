@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import {
     DndContext,
     DragEndEvent,
@@ -7,19 +7,46 @@ import {
     useSensor,
     useSensors,
     PointerSensor,
+    closestCenter,
 } from '@dnd-kit/core';
 import { useBoardStore } from '../../store/boardStore';
-import TabCard from './components/TabCard';
-import FolderColumn from './components/FolderColumn';
-import AddFolderForm from './components/AddFolderForm';
 import HistorySidePanel from './components/HistorySidePanel';
-import './BoardView.css';
+import BoardHeader from './components/BoardHeader';
+import BoardList from './components/BoardList';
+import BoardToast from './components/BoardToast';
 import { HistoryItem } from '../../types';
+import './BoardView.css';
 
 const BoardView: React.FC = () => {
-    const { boards, folders, tabs, moveTab, reorderTab, addBoard, addTab } = useBoardStore();
+    const {
+        boards,
+        folders,
+        tabs,
+        addBoard,
+        addFolder,
+        addTab,
+        updateFolder,
+        updateTab,
+        deleteFolder,
+        deleteTab,
+        moveTab,
+        reorderTab,
+    } = useBoardStore();
     const hasCheckedForDefaultBoard = useRef(false);
     const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+    const [activeId, setActiveId] = useState<string | null>(null);
+    const [draggedHistoryItem, setDraggedHistoryItem] = useState<HistoryItem | null>(null);
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        })
+    );
 
     // Create a default board if none exists
     const currentBoard =
@@ -68,141 +95,319 @@ const BoardView: React.FC = () => {
     }, [boards, addBoard]);
 
     const boardFolders = folders.filter(folder => folder.boardId === currentBoard.id);
+    const boardTabs = tabs.filter(tab => {
+        // Include tabs that belong to folders in this board, or tabs without folders
+        if (tab.folderId && tab.folderId !== '') {
+            return boardFolders.some(f => f.id === tab.folderId);
+        }
+        return true; // Tabs without folders belong to the board
+    });
 
-    const [activeId, setActiveId] = React.useState<string | null>(null);
-    const [draggedHistoryItem, setDraggedHistoryItem] = React.useState<HistoryItem | null>(null);
+    // Search functionality
+    const filteredFolders = useMemo(() => {
+        if (!searchQuery.trim()) return boardFolders;
 
-    const sensors = useSensors(
-        useSensor(PointerSensor, {
-            activationConstraint: {
-                distance: 8,
-            },
-        })
+        const query = searchQuery.toLowerCase();
+        return boardFolders.filter(folder => {
+            const folderMatches = folder.name.toLowerCase().includes(query);
+            const tabsInFolder = boardTabs.filter(tab => tab.folderId === folder.id);
+            const tabsMatch = tabsInFolder.some(
+                tab => tab.title.toLowerCase().includes(query) || tab.url.toLowerCase().includes(query)
+            );
+            return folderMatches || tabsMatch;
+        });
+    }, [boardFolders, boardTabs, searchQuery]);
+
+    const filteredTabs = useMemo(() => {
+        if (!searchQuery.trim()) return boardTabs;
+
+        const query = searchQuery.toLowerCase();
+        return boardTabs.filter(
+            tab => tab.title.toLowerCase().includes(query) || tab.url.toLowerCase().includes(query)
+        );
+    }, [boardTabs, searchQuery]);
+
+    const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setToast({ message, type });
+    }, []);
+
+    const handleCreateFolder = useCallback(
+        (data: { name: string; color: string }) => {
+            if (currentBoard?.id) {
+                addFolder({
+                    id: `folder_${Date.now()}`,
+                    name: data.name,
+                    boardId: currentBoard.id,
+                    color: data.color,
+                    order: 0,
+                });
+                showToast('Folder created successfully!', 'success');
+            }
+        },
+        [addFolder, currentBoard, showToast]
     );
 
-    const handleDragStart = (event: DragStartEvent) => {
+    const handleCreateTab = useCallback(
+        (data: { title: string; url: string; folderId?: string }) => {
+            const tabToAdd = {
+                id: `tab_${Date.now()}`,
+                title: data.title,
+                url: data.url,
+                favicon: undefined,
+                folderId: data.folderId || '',
+                tabId: null,
+                lastAccessed: new Date().toISOString(),
+                status: 'closed' as const,
+            };
+            addTab(tabToAdd);
+            showToast('Tab created successfully!', 'success');
+        },
+        [addTab, showToast]
+    );
+
+    const handleUpdateFolder = useCallback(
+        (id: string, changes: { name?: string; color?: string }) => {
+            updateFolder(id, changes);
+            showToast('Folder updated successfully!', 'success');
+        },
+        [updateFolder, showToast]
+    );
+
+    const handleUpdateTab = useCallback(
+        (id: string, changes: { title?: string; url?: string; folderId?: string }) => {
+            updateTab(id, changes);
+            showToast('Tab updated successfully!', 'success');
+        },
+        [updateTab, showToast]
+    );
+
+    const handleDeleteFolder = useCallback(
+        (id: string) => {
+            deleteFolder(id);
+            showToast('Folder deleted successfully!', 'success');
+        },
+        [deleteFolder, showToast]
+    );
+
+    const handleDeleteTab = useCallback(
+        (id: string) => {
+            deleteTab(id);
+            showToast('Tab deleted successfully!', 'success');
+        },
+        [deleteTab, showToast]
+    );
+
+    const handleOpenTab = useCallback((url: string) => {
+        if (url && chrome?.tabs) {
+            chrome.tabs.create({ url }).catch(error => {
+                console.error('Error opening tab:', error);
+            });
+        }
+    }, []);
+
+    const handleSearch = useCallback((query: string) => {
+        setSearchQuery(query);
+    }, []);
+
+    const handleDragStart = useCallback((event: DragStartEvent) => {
         if (event.active) {
             setActiveId(event.active.id as string);
             if (event.active.data.current?.type === 'HistoryItem') {
                 setDraggedHistoryItem(event.active.data.current.item as HistoryItem);
             }
         }
-    };
+    }, []);
 
-    const handleDragEnd = (event: DragEndEvent) => {
-        const { active, over } = event;
+    const handleDragEnd = useCallback(
+        (event: DragEndEvent) => {
+            const { active, over } = event;
 
-        if (!over) {
-            setActiveId(null);
-            setDraggedHistoryItem(null);
-            return;
-        }
-
-        // Handle History Item Drop
-        if (active.data.current?.type === 'HistoryItem') {
-            const historyItem = active.data.current.item as HistoryItem;
-            // Find target folder
-            // 1. Dropped directly on a folder
-            const targetFolderId = folders.find(f => f.id === over.id)?.id;
-
-            // 2. Dropped on a tab (find its folder)
-            const targetTab = tabs.find(t => t.id === over.id);
-            const folderIdFromTab = targetTab?.folderId;
-
-            const finalFolderId = targetFolderId || folderIdFromTab;
-
-            if (finalFolderId) {
-                const tabToAdd = {
-                    id: `tab_${Date.now()}_${historyItem.id}`,
-                    title: historyItem.title,
-                    url: historyItem.url,
-                    favicon: historyItem.favicon,
-                    folderId: finalFolderId,
-                    tabId: null,
-                    lastAccessed: new Date().toISOString(),
-                    status: 'closed' as const,
-                    createdAt: new Date().toISOString(),
-                };
-                addTab(tabToAdd);
+            if (!over) {
+                setActiveId(null);
+                setDraggedHistoryItem(null);
+                return;
             }
 
-            setActiveId(null);
-            setDraggedHistoryItem(null);
-            return;
-        }
+            // Handle History Item Drop
+            if (active.data.current?.type === 'HistoryItem') {
+                const historyItem = active.data.current.item as HistoryItem;
+                // Find target folder
+                const targetFolderId = folders.find(f => f.id === over.id)?.id;
 
-        // Handle Tab Reorder/Move
-        if (active.id !== over.id) {
-            const activeTab = tabs.find(t => t.id === active.id);
-            const overTab = tabs.find(t => t.id === over.id);
-            const overFolder = folders.find(f => f.id === over.id);
+                // Check if dropped on a tab (find its folder)
+                const targetTab = tabs.find(t => t.id === over.id);
+                const folderIdFromTab = targetTab?.folderId;
 
-            if (activeTab) {
-                if (overTab) {
-                    // Dropped on another tab
-                    if (activeTab.folderId === overTab.folderId) {
-                        // Same folder - reorder
-                        const folderTabs = tabs.filter(t => t.folderId === activeTab.folderId);
-                        const newIndex = folderTabs.findIndex(t => t.id === over.id);
-                        if (newIndex !== -1) {
-                            reorderTab(active.id as string, newIndex, activeTab.folderId);
+                const finalFolderId = targetFolderId || folderIdFromTab;
+
+                if (finalFolderId) {
+                    const tabToAdd = {
+                        id: `tab_${Date.now()}_${historyItem.id}`,
+                        title: historyItem.title,
+                        url: historyItem.url,
+                        favicon: historyItem.favicon,
+                        folderId: finalFolderId,
+                        tabId: null,
+                        lastAccessed: new Date().toISOString(),
+                        status: 'closed' as const,
+                    };
+                    addTab(tabToAdd);
+                    showToast('History item added to folder!', 'success');
+                }
+
+                setActiveId(null);
+                setDraggedHistoryItem(null);
+                return;
+            }
+
+            // Handle Tab Reorder/Move
+            if (active.id !== over.id) {
+                const activeTab = tabs.find(t => t.id === active.id);
+                const overTab = tabs.find(t => t.id === over.id);
+                const overFolder = folders.find(f => f.id === over.id);
+
+                if (activeTab) {
+                    if (overTab) {
+                        // Dropped on another tab
+                        if (activeTab.folderId === overTab.folderId) {
+                            // Same folder - reorder
+                            const folderTabs = tabs.filter(t => t.folderId === activeTab.folderId);
+                            const newIndex = folderTabs.findIndex(t => t.id === over.id);
+                            if (newIndex !== -1 && activeTab.folderId) {
+                                reorderTab(active.id as string, newIndex, activeTab.folderId);
+                            }
+                        } else {
+                            // Different folder - move to that folder
+                            moveTab(active.id as string, overTab.folderId || '');
+                            showToast('Tab moved to folder!', 'success');
                         }
-                    } else {
-                        // Different folder - move to that folder
-                        moveTab(active.id as string, overTab.folderId);
+                    } else if (overFolder) {
+                        // Dropped on a folder (empty area)
+                        moveTab(active.id as string, overFolder.id);
+                        showToast('Tab moved to folder!', 'success');
                     }
-                } else if (overFolder) {
-                    // Dropped on a folder (empty area)
-                    moveTab(active.id as string, overFolder.id);
                 }
             }
-        }
-        setActiveId(null);
-        setDraggedHistoryItem(null);
-    };
+            setActiveId(null);
+            setDraggedHistoryItem(null);
+        },
+        [folders, tabs, addTab, moveTab, reorderTab, showToast]
+    );
 
     const activeTab = activeId ? tabs.find(t => t.id === activeId) : null;
 
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ctrl+F or Cmd+F to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f' && !e.shiftKey) {
+                const searchInput = document.querySelector('.board-search-input-modern') as HTMLInputElement;
+                if (searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     return (
-        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={sensors}>
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+        >
             <div className="board-view">
-                <div className="board-header">
-                    <h2>{currentBoard?.name || 'Default Board'}</h2>
-                </div>
-                <div className="folders-container">
-                    {boardFolders.map(folder => (
-                        <FolderColumn
-                            key={folder.id}
-                            folder={folder}
-                            tabs={tabs.filter(tab => tab.folderId === folder.id)}
-                        />
-                    ))}
-                    <AddFolderForm boardId={currentBoard?.id} />
-                </div>
+                {toast && <BoardToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+                <BoardHeader
+                    boardName={currentBoard?.name || 'Default Board'}
+                    folders={boardFolders}
+                    tabs={boardTabs}
+                    searchQuery={searchQuery}
+                    onSearch={handleSearch}
+                    onCreateFolder={handleCreateFolder}
+                    onCreateTab={handleCreateTab}
+                    onShowHistory={() => setIsHistoryPanelOpen(!isHistoryPanelOpen)}
+                    isHistoryOpen={isHistoryPanelOpen}
+                    onShowToast={showToast}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                />
+
+                {boardFolders.length === 0 && !hasCheckedForDefaultBoard.current ? (
+                    <div className="board-loading">
+                        <div className="board-loading-skeleton">
+                            <div className="board-skeleton-item"></div>
+                            <div className="board-skeleton-item"></div>
+                            <div className="board-skeleton-item"></div>
+                        </div>
+                    </div>
+                ) : filteredFolders.length === 0 && filteredTabs.length === 0 && searchQuery.trim() ? (
+                    <div className="board-empty" role="status" aria-live="polite">
+                        <div className="board-empty-text">
+                            No folders or tabs found matching &quot;<strong>{searchQuery}</strong>&quot;
+                        </div>
+                        <div className="board-empty-hint">Try adjusting your search terms</div>
+                    </div>
+                ) : (
+                    <BoardList
+                        folders={filteredFolders}
+                        tabs={filteredTabs}
+                        onUpdateFolder={handleUpdateFolder}
+                        onUpdateTab={handleUpdateTab}
+                        onDeleteFolder={handleDeleteFolder}
+                        onDeleteTab={handleDeleteTab}
+                        onOpenTab={handleOpenTab}
+                        onCreateTab={handleCreateTab}
+                        onShowToast={showToast}
+                        viewMode={viewMode}
+                    />
+                )}
 
                 <HistorySidePanel isOpen={isHistoryPanelOpen} onClose={() => setIsHistoryPanelOpen(false)} />
 
-                <div className={`history-toggle-wrapper ${isHistoryPanelOpen ? 'open' : ''}`}>
-                    <button
-                        className="history-toggle-btn"
-                        onClick={() => setIsHistoryPanelOpen(!isHistoryPanelOpen)}
-                        title={isHistoryPanelOpen ? 'Close History' : 'Open History'}
-                    >
-                        <span>Load History</span>
-                    </button>
-                </div>
-
                 <DragOverlay>
-                    {activeTab ? <TabCard tab={activeTab} isOverlay /> : null}
-                    {draggedHistoryItem ? (
-                        <div className="history-drag-overlay">
-                            <div className="history-item">
-                                <div className="history-content">
-                                    {draggedHistoryItem.favicon && (
-                                        <img src={draggedHistoryItem.favicon} alt="" className="history-favicon" />
-                                    )}
-                                    <div className="history-text">
-                                        <h3 className="history-title">{draggedHistoryItem.title}</h3>
+                    {activeTab ? (
+                        <div className="board-node board-item board-drag-overlay">
+                            <div className="board-node-content">
+                                <div className="board-node-main">
+                                    <span className="board-icon board-favicon">
+                                        <span className="board-default-icon">🌐</span>
+                                    </span>
+                                    <div className="board-node-info">
+                                        <div className="board-node-title-row">
+                                            <span className="board-title">{activeTab.title}</span>
+                                        </div>
+                                        <span className="board-url">{activeTab.url}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : draggedHistoryItem ? (
+                        <div className="board-node board-item board-drag-overlay">
+                            <div className="board-node-content">
+                                <div className="board-node-main">
+                                    <span className="board-icon board-favicon">
+                                        {draggedHistoryItem.favicon ? (
+                                            <img
+                                                src={draggedHistoryItem.favicon}
+                                                alt=""
+                                                className="board-favicon-img"
+                                            />
+                                        ) : (
+                                            <span className="board-default-icon">🌐</span>
+                                        )}
+                                    </span>
+                                    <div className="board-node-info">
+                                        <div className="board-node-title-row">
+                                            <span className="board-title">{draggedHistoryItem.title}</span>
+                                        </div>
+                                        <span className="board-url">{draggedHistoryItem.url}</span>
                                     </div>
                                 </div>
                             </div>
